@@ -2,60 +2,29 @@
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, MessageCircle, BarChart3, Grid3X3 } from "lucide-react";
+import { Plus, MessageCircle, BarChart3, Grid3X3, Loader2 } from "lucide-react";
 import Link from "next/link";
 import ThoughtsList from "@/components/explore/thoughts-list";
 import { ThoughtList } from "@/lib/types";
 import ThoughtsChat from "@/components/explore/thoughts-chat";
 import ThoughtsGraph from "@/components/explore/thoughts-graph";
-
-// Mock data for thoughts
-const mockThoughts: ThoughtList[] = [
-  {
-    id: "1",
-    title:
-      "Remember to practice mindfulness today. The small moments matter most.",
-    excerpt:
-      "Remember to practice mindfulness today. The small moments matter most.",
-    created_at: "2359823523",
-    position: [0, 0],
-    label: 0,
-  },
-  {
-    id: "2",
-    title: "Beautiful sunset from my walk",
-    excerpt: "Beautiful sunset from my walk",
-    created_at: "2359823523",
-    position: [0, 0],
-    label: 1,
-  },
-  {
-    id: "3",
-    title: "Voice note about project ideas",
-    excerpt: "Voice note about project ideas",
-    created_at: "2359823523",
-    position: [0, 0],
-    label: 2,
-  },
-  {
-    id: "4",
-    title: "Gratitude: Coffee, good books, and quiet mornings",
-    excerpt: "Gratitude: Coffee, good books, and quiet mornings",
-    created_at: "2359823523",
-    position: [0, 0],
-    label: 2,
-  },
-  {
-    id: "5",
-    title: "Idea: What if we could visualize our thoughts as a network?",
-    excerpt: "Idea: What if we could visualize our thoughts as a network?",
-    created_at: "2359823523",
-    position: [0, 0],
-    label: 1,
-  },
-];
+import { useEffect, useState } from "react";
 
 export default function ExplorePage() {
+  const [thoughts, setThoughts] = useState<ThoughtList[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchThoughts = async () => {
+      setLoading(true);
+      const response = await fetch("http://localhost:8000/thoughts/visualize");
+      const data = await response.json();
+      setThoughts(data.thoughts);
+      setLoading(false);
+    };
+    fetchThoughts();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50/30 flex flex-col">
       {/* Header */}
@@ -80,42 +49,50 @@ export default function ExplorePage() {
 
       {/* Main Content */}
       <div className="flex-1">
-        <Tabs defaultValue="thoughts" className="w-full h-full">
-          {/* Navigation Tabs */}
-          <div className="border-b border-gray-200/60 bg-white/50">
-            <div className="max-w-7xl mx-auto">
-              <TabsList className="bg-transparent h-14 w-fit justify-start space-x-2 px-4">
-                <MTabsTrigger value="thoughts">
-                  <Grid3X3 className="w-4 h-4 mr-2" />
-                  Thoughts
-                </MTabsTrigger>
-                <MTabsTrigger value="graph">
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Visualize
-                </MTabsTrigger>
-                <MTabsTrigger value="chat">
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Chat
-                </MTabsTrigger>
-              </TabsList>
-            </div>
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
           </div>
+        ) : (
+          <>
+            <Tabs defaultValue="thoughts" className="w-full h-full">
+              {/* Navigation Tabs */}
+              <div className="border-b border-gray-200/60 bg-white/50">
+                <div className="max-w-7xl mx-auto">
+                  <TabsList className="bg-transparent h-14 w-fit justify-start space-x-2 px-4">
+                    <MTabsTrigger value="thoughts">
+                      <Grid3X3 className="w-4 h-4 mr-2" />
+                      Thoughts
+                    </MTabsTrigger>
+                    <MTabsTrigger value="graph">
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      Visualize
+                    </MTabsTrigger>
+                    <MTabsTrigger value="chat">
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Chat
+                    </MTabsTrigger>
+                  </TabsList>
+                </div>
+              </div>
 
-          {/* Thoughts Section */}
-          <MTabsContent value="thoughts">
-            <ThoughtsList thoughts={mockThoughts} />
-          </MTabsContent>
+              {/* Thoughts Section */}
+              <MTabsContent value="thoughts">
+                <ThoughtsList thoughts={thoughts} setThoughts={setThoughts} />
+              </MTabsContent>
 
-          {/* Graph Section */}
-          <MTabsContent value="graph">
-            <ThoughtsGraph />
-          </MTabsContent>
+              {/* Graph Section */}
+              <MTabsContent value="graph">
+                <ThoughtsGraph thoughts={thoughts} />
+              </MTabsContent>
 
-          {/* Chat Section */}
-          <MTabsContent value="chat">
-            <ThoughtsChat />
-          </MTabsContent>
-        </Tabs>
+              {/* Chat Section */}
+              <MTabsContent value="chat">
+                <ThoughtsChat />
+              </MTabsContent>
+            </Tabs>
+          </>
+        )}
       </div>
     </div>
   );
