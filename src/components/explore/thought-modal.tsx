@@ -49,6 +49,8 @@ export default function ThoughtModal({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [isPasting, setIsPasting] = useState(false);
   useEffect(() => {
     if (thought_id) {
       setEditedThought(null);
@@ -112,6 +114,37 @@ export default function ThoughtModal({
     }
   };
 
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    setIsPasting(true);
+
+    const items = e.clipboardData?.items;
+    if (!items) {
+      setIsPasting(false);
+      return;
+    }
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf("image") !== -1) {
+        const file = item.getAsFile();
+        if (file) {
+          setImageFile(file);
+          if (editedThought) {
+            setEditedThought({
+              ...editedThought,
+              image_url: URL.createObjectURL(file),
+            });
+          }
+          setIsPasting(false);
+          break;
+        }
+      }
+    }
+
+    setTimeout(() => setIsPasting(false), 1000);
+  };
+
   const handleDeleteThought = async () => {
     if (editedThought) {
       setDeleteLoading(true);
@@ -129,6 +162,8 @@ export default function ThoughtModal({
       }
       setDeleteLoading(false);
     }
+
+    setTimeout(() => setIsPasting(false), 500);
   };
 
   return (
@@ -185,7 +220,12 @@ export default function ThoughtModal({
 
             <div className="space-y-3">
               <Label className="text-gray-600 font-light">Image</Label>
-              <div className="border border-gray-200/60 border-dashed rounded-lg p-4">
+              <div
+                className="border border-gray-200/60 border-dashed rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-colors"
+                onPaste={handlePaste}
+                onDragOver={(e) => e.preventDefault()}
+                tabIndex={0}
+              >
                 {editedThought.image_url ? (
                   <div className="space-y-3">
                     <Image
@@ -215,6 +255,11 @@ export default function ThoughtModal({
                       onChange={handleFileChange}
                       className="max-w-xs mx-auto"
                     />
+                  </div>
+                )}
+                {isPasting && (
+                  <div className="flex items-center space-x-2 bg-gray-50/50 rounded-lg">
+                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
                   </div>
                 )}
               </div>

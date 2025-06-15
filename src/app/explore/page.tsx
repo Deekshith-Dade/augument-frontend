@@ -6,9 +6,9 @@ import { Plus, MessageCircle, BarChart3, Grid3X3, Loader2 } from "lucide-react";
 import Link from "next/link";
 import ThoughtsList from "@/components/explore/thoughts-list";
 import { ThoughtList } from "@/lib/types";
-import ThoughtsChat from "@/components/explore/thoughts-chat";
 import ThoughtsGraph from "@/components/explore/thoughts-graph";
 import { useEffect, useState } from "react";
+import { ChatLayout } from "@/components/chat/chat-layout";
 
 export default function ExplorePage() {
   const [thoughts, setThoughts] = useState<ThoughtList[]>([]);
@@ -88,7 +88,7 @@ export default function ExplorePage() {
 
               {/* Chat Section */}
               <MTabsContent value="chat">
-                <ThoughtsChat />
+                <ChatLayout thoughts={thoughts} />
               </MTabsContent>
             </Tabs>
           </>
