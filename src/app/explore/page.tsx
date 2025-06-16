@@ -2,13 +2,21 @@
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, MessageCircle, BarChart3, Grid3X3, Loader2 } from "lucide-react";
+import {
+  Plus,
+  MessageCircle,
+  BarChart3,
+  Grid3X3,
+  Loader2,
+  BookOpen,
+} from "lucide-react";
 import Link from "next/link";
 import ThoughtsList from "@/components/explore/thoughts-list";
 import { ThoughtList } from "@/lib/types";
 import ThoughtsGraph from "@/components/explore/thoughts-graph";
 import { useEffect, useState } from "react";
 import { ChatLayout } from "@/components/chat/chat-layout";
+import Discover from "@/components/explore/discover";
 
 export default function ExplorePage() {
   const [thoughts, setThoughts] = useState<ThoughtList[]>([]);
@@ -60,65 +68,67 @@ export default function ExplorePage() {
               <div className="border-b border-gray-200/60 bg-white/50">
                 <div className="max-w-7xl mx-auto">
                   <TabsList className="bg-transparent h-14 w-fit justify-start space-x-2 px-4">
-                    <MTabsTrigger value="thoughts">
+                    <TabsTrigger
+                      value="thoughts"
+                      className="data-[state=active]:bg-white data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-gray-200/60 px-4 h-10 hover:cursor-pointer"
+                    >
                       <Grid3X3 className="w-4 h-4 mr-2" />
                       Thoughts
-                    </MTabsTrigger>
-                    <MTabsTrigger value="graph">
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="graph"
+                      className="data-[state=active]:bg-white data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-gray-200/60 px-4 h-10 hover:cursor-pointer"
+                    >
                       <BarChart3 className="w-4 h-4 mr-2" />
                       Visualize
-                    </MTabsTrigger>
-                    <MTabsTrigger value="chat">
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="chat"
+                      className="data-[state=active]:bg-white data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-gray-200/60 px-4 h-10 hover:cursor-pointer"
+                    >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Chat
-                    </MTabsTrigger>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="discover"
+                      className="data-[state=active]:bg-white data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-gray-200/60 px-4 h-10 hover:cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Discover
+                    </TabsTrigger>
                   </TabsList>
                 </div>
               </div>
 
               {/* Thoughts Section */}
-              <MTabsContent value="thoughts">
+              <TabsContent
+                value="thoughts"
+                className="mt-0 h-[calc(100vh-130px)]"
+              >
                 <ThoughtsList thoughts={thoughts} setThoughts={setThoughts} />
-              </MTabsContent>
+              </TabsContent>
 
               {/* Graph Section */}
-              <MTabsContent value="graph">
+              <TabsContent value="graph" className="mt-0 h-[calc(100vh-130px)]">
                 <ThoughtsGraph thoughts={thoughts} />
-              </MTabsContent>
+              </TabsContent>
 
               {/* Chat Section */}
-              <MTabsContent value="chat">
-                <ChatLayout thoughts={thoughts} />
-              </MTabsContent>
+              <TabsContent value="chat" className="mt-0 h-[calc(100vh-130px)]">
+                <ChatLayout />
+              </TabsContent>
+
+              {/* Discover Section */}
+              <TabsContent
+                value="discover"
+                className="mt-0 h-[calc(100vh-130px)]"
+              >
+                <Discover />
+              </TabsContent>
             </Tabs>
           </>
         )}
       </div>
     </div>
-  );
-}
-
-function MTabsTrigger({
-  children,
-  ...props
-}: React.ComponentProps<typeof TabsTrigger>) {
-  return (
-    <TabsTrigger
-      className="data-[state=active]:bg-white data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-gray-200/60 px-4 h-10 hover:cursor-pointer"
-      {...props}
-    >
-      {children}
-    </TabsTrigger>
-  );
-}
-
-function MTabsContent({
-  children,
-  ...props
-}: React.ComponentProps<typeof TabsContent>) {
-  return (
-    <TabsContent className="mt-0 h-[calc(100vh-130px)]" {...props}>
-      {children}
-    </TabsContent>
   );
 }

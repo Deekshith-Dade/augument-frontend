@@ -4,6 +4,9 @@ import * as THREE from "three";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { ThoughtList } from "@/lib/types";
+import { Button } from "../ui/button";
+import { Minimize2, Search, X } from "lucide-react";
+import { Input } from "../ui/input";
 
 const CAMERA_POSITION: [number, number, number] = [0, 0, 5];
 const CAMERA_FOV = 45;
@@ -265,12 +268,10 @@ function InfoPanel({
     if (!thought || !canvasRef.current) return;
 
     const updatePosition = () => {
-      // This is a simplified positioning - in a real app you'd need access to the camera
-      // For now, we'll position it relative to the canvas center
       const canvas = canvasRef.current!;
       const rect = canvas.getBoundingClientRect();
       const x = rect.left + rect.width * 0.75;
-      const y = rect.top + rect.height * 0.15;
+      const y = rect.top + rect.height * 0.45;
 
       if (panelRef.current) {
         setPosition({
@@ -281,10 +282,12 @@ function InfoPanel({
     };
 
     updatePosition();
-    const interval = setInterval(updatePosition, 100); // Update position periodically
+    const interval = setInterval(updatePosition, 100);
 
     return () => clearInterval(interval);
   }, [thought, canvasRef]);
+
+  const [showExcerpt, setShowExcerpt] = useState(false);
 
   const style = {
     transform: `translate(${position.x}px, ${position.y}px)`,
@@ -296,15 +299,29 @@ function InfoPanel({
     <div
       ref={panelRef}
       style={style}
-      className="fixed top-0 left-0 w-[250px] bg-white/90 border border-slate-300 rounded-xl p-4 text-slate-800 text-sm leading-5 backdrop-blur-lg shadow-lg pointer-events-none transition-opacity duration-300 z-20"
+      className="fixed top-0 left-0 w-[250px] bg-white/90 border border-slate-300 rounded-xl p-4 text-slate-800 text-sm leading-5 backdrop-blur-xs shadow-lg  transition-opacity duration-300 z-40"
     >
       {thought && (
-        <>
-          <p className="font-bold text-base mb-1" style={{ color: "grey" }}>
-            {thought.title}
-          </p>
-          <p className="text-slate-600">{thought.excerpt}</p>
-        </>
+        <div className="">
+          <div className="flex justify-between items-center">
+            <p className="font-semibold  mb-1 text-slate-600">
+              {thought.title}
+            </p>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer text-slate-600  hover:bg-slate-200 hover:cursor-pointer p-1"
+              onClick={() => setShowExcerpt(!showExcerpt)}
+            >
+              <Minimize2 className="w-4 h-4" />
+            </Button>
+          </div>
+          {showExcerpt && (
+            <p className="text-slate-600  line-clamp-6 text-sm">
+              {thought.excerpt}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
@@ -315,17 +332,34 @@ export default function ThoughtCloud({
 }: {
   thoughts: ThoughtList[];
 }) {
+  const [selectedThought, setSelectedThought] = useState<ThoughtNode | null>(
+    null
+  );
   const thoughtNodes = useMemo(
     () => centerThoughtPositions(convertToThoughtNodes(thoughts)),
     [thoughts]
   );
-  const [selectedThought, setSelectedThought] = useState<ThoughtNode | null>(
-    null
-  );
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredThoughts = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return thoughtNodes;
+    }
+    setSelectedThought(null);
+    const query = searchQuery.toLowerCase();
+    return thoughtNodes.filter(
+      (thought) =>
+        thought.title.toLowerCase().includes(query) ||
+        thought.excerpt.toLowerCase().includes(query) ||
+        thought.label.toString().includes(query)
+    );
+  }, [searchQuery, thoughtNodes]);
+
   return (
     <div className="relative h-[85vh] bg-slate-100 font-sans">
-      <div className=" p-6 pointer-events-none w-full z-[-10]">
+      {/* Header */}
+      <div className=" p-6 pointer-events-none w-full z-[10]">
         <div className="max-w-md">
           <h1 className="text-2xl font-bold text-slate-800">
             The Thought Cloud
@@ -335,12 +369,52 @@ export default function ThoughtCloud({
           </p>
         </div>
       </div>
+      {/* Search Bar */}
+      <div className="absolute top-6 right-6 mb-6 z-10">
+        <div className="max-w-md ">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
+            <Input
+              type="text"
+              placeholder="Search your thoughts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 border-gray-200/60 focus:border-gray-300 bg-white/80 backdrop-blur-sm shadow-sm"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+                onClick={() => {
+                  setSearchQuery("");
+                }}
+              >
+                <X className="w-3 h-3" />
+                <span className="sr-only">Clear search</span>
+              </Button>
+            )}
+          </div>
+          {/* {searchQuery && (
+            <div className="mt-2 text-center">
+              <p className="text-sm text-gray-500 font-light">
+                {filteredThoughts.length === 0
+                  ? "No thoughts found"
+                  : `${filteredThoughts.length} thought${
+                      filteredThoughts.length === 1 ? "" : "s"
+                    } found`}
+              </p>
+            </div>
+          )} */}
+        </div>
+      </div>
       <button
         onClick={() => setSelectedThought(null)}
         className="absolute bottom-6 right-6 bg-white/70 hover:bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-105 focus:outline-none border border-slate-300 z-10"
       >
         Reset View
       </button>
+      <InfoPanel thought={selectedThought} canvasRef={canvasRef} />
       <div className="absolute top-0 left-0 w-full h-full z-9">
         <Canvas
           ref={canvasRef}
@@ -355,13 +429,12 @@ export default function ThoughtCloud({
           }}
         >
           <Scene
-            thoughts={thoughtNodes}
+            thoughts={filteredThoughts}
             selectedThought={selectedThought}
             setSelectedThought={setSelectedThought}
           />
         </Canvas>
       </div>
-      <InfoPanel thought={selectedThought} canvasRef={canvasRef} />
     </div>
   );
 }

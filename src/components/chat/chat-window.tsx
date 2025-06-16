@@ -49,6 +49,7 @@ export function ChatWindow({}) {
         };
       },
       onFinish: (message: Message) => {
+        console.log(message);
         const chatMessage = message as ChatMessage;
         const session = chatMessage.annotations?.[0]?.session;
         if (session && !activeSessionId) {
@@ -178,6 +179,12 @@ export function ChatWindow({}) {
             style={{
               height: "auto",
               overflow: "hidden",
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
             }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
