@@ -15,6 +15,7 @@ import { ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Mic, Trash2, X, Save, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@clerk/nextjs";
 
 export interface Thought {
   id: string;
@@ -51,13 +52,19 @@ export default function ThoughtModal({
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [isPasting, setIsPasting] = useState(false);
+  const { getToken } = useAuth();
   useEffect(() => {
     if (thought_id) {
       setEditedThought(null);
       setImageFile(null);
       const fetchThought = async () => {
         const response = await fetch(
-          `http://localhost:8000/thoughts/${thought_id}`
+          `http://localhost:8000/thoughts/${thought_id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${await getToken()}`,
+            },
+          }
         );
         const data = await response.json();
         if (response.ok) {
@@ -66,7 +73,7 @@ export default function ThoughtModal({
       };
       fetchThought();
     }
-  }, [thought_id]);
+  }, [thought_id, getToken]);
 
   const toggleRecording = () => {
     setIsRecording(!isRecording);
@@ -89,6 +96,9 @@ export default function ThoughtModal({
       {
         method: "PUT",
         body: formData,
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
       }
     );
 
@@ -152,6 +162,9 @@ export default function ThoughtModal({
         `http://localhost:8000/thoughts/${thought_id}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${await getToken()}`,
+          },
         }
       );
       if (response.ok) {

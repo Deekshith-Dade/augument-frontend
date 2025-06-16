@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Mic, Type, Send, Loader2, Grid3X3 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { SignedIn, useAuth, UserButton, useUser } from "@clerk/nextjs";
 
 export default function HomePage() {
   const [textThought, setTextThought] = useState("");
@@ -24,7 +25,8 @@ export default function HomePage() {
     status: null,
     message: "",
   });
-
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const [isPasting, setIsPasting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,6 +47,9 @@ export default function HomePage() {
     const response = await fetch("http://localhost:8000/thoughts/create", {
       method: "POST",
       body: formData,
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
     });
 
     if (response.ok) {
@@ -100,10 +105,22 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50/30 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl space-y-8">
         {/* Header */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 relative">
           <h1 className="text-3xl font-light text-gray-800 tracking-wide">
             Augment
           </h1>
+          <SignedIn>
+            <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+              <div className="relative group">
+                <UserButton />
+
+                {/* Tooltip */}
+                <div className="absolute top-full mt-2 right-0 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                  {user?.firstName} {user?.lastName}
+                </div>
+              </div>
+            </div>
+          </SignedIn>
           <p className="text-gray-500 text-sm font-light">
             Capture your thoughts in any form
           </p>

@@ -9,6 +9,7 @@ import { useRef, useEffect } from "react";
 import { Markdown } from "../general/markdown";
 import useExploreChatStore from "@/store/explore-chat-store";
 import { Message } from "@ai-sdk/react";
+import { useAuth } from "@clerk/nextjs";
 
 // const sessionId = "265687ad-9c61-4f83-a269-c8fa6672d495";
 
@@ -37,8 +38,9 @@ interface ChatMessage extends Message {
 export function ChatWindow({}) {
   const { activeSessionId, setActiveSessionId, addSession } =
     useExploreChatStore();
-
+  const { getToken } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const { messages, setMessages, input, handleInputChange, handleSubmit } =
     useChat({
       api: `http://localhost:8000/chat/`,
@@ -57,6 +59,13 @@ export function ChatWindow({}) {
           setActiveSessionId(session.id);
         }
       },
+      fetch: async (url, options) => {
+        const token = await getToken();
+        return fetch(url, {
+          ...options,
+          headers: { ...options?.headers, Authorization: `Bearer ${token}` },
+        });
+      },
     });
 
   useEffect(() => {
@@ -67,7 +76,12 @@ export function ChatWindow({}) {
       }
       try {
         const response = await fetch(
-          `http://localhost:8000/chat/history/${sessionId}`
+          `http://localhost:8000/chat/history/${sessionId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${await getToken()}`,
+            },
+          }
         );
         const data = await response.json();
         setMessages(data);
@@ -76,7 +90,7 @@ export function ChatWindow({}) {
       }
     };
     fetchSessionHistory(activeSessionId);
-  }, [activeSessionId, setMessages]);
+  }, [activeSessionId, setMessages, getToken]);
 
   // Scroll to bottom when messages change
 

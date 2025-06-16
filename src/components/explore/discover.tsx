@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { User, Clock, BookOpen, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 
 // Define article interface
 interface Article {
@@ -24,14 +25,19 @@ export default function Discover() {
   const [page, setPage] = useState(0);
   const [limit] = useState(3);
   const [disabled, setDisabled] = useState(false);
-
+  const { getToken } = useAuth();
   useEffect(() => {
     const fetchArticles = async () => {
       setLoading(true);
       const response = await fetch(
         `http://localhost:8000/articles/discover?limit=${limit}&offset=${
           page * limit
-        }`
+        }`,
+        {
+          headers: {
+            Authorization: `Bearer ${await getToken()}`,
+          },
+        }
       );
       const data = await response.json();
       if (data.articles.length === 0) {
@@ -49,7 +55,7 @@ export default function Discover() {
       setLoading(false);
     };
     fetchArticles();
-  }, [page, limit]);
+  }, [page, limit, getToken]);
 
   return (
     <div className="max-w-5xl mx-auto p-6">

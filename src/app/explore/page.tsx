@@ -17,21 +17,27 @@ import ThoughtsGraph from "@/components/explore/thoughts-graph";
 import { useEffect, useState } from "react";
 import { ChatLayout } from "@/components/chat/chat-layout";
 import Discover from "@/components/explore/discover";
+import { SignedIn, useAuth, UserButton, useUser } from "@clerk/nextjs";
 
 export default function ExplorePage() {
   const [thoughts, setThoughts] = useState<ThoughtList[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const { user } = useUser();
+  const { getToken } = useAuth();
   useEffect(() => {
     const fetchThoughts = async () => {
       setLoading(true);
-      const response = await fetch("http://localhost:8000/thoughts/visualize");
+      const response = await fetch("http://localhost:8000/thoughts/visualize", {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
       const data = await response.json();
       setThoughts(data.thoughts);
       setLoading(false);
     };
     fetchThoughts();
-  }, []);
+  }, [getToken]);
 
   return (
     <div className="min-h-screen bg-gray-50/30 flex flex-col">
@@ -46,12 +52,24 @@ export default function ExplorePage() {
               Your thought space
             </p>
           </div>
-          <Link href="/">
-            <Button variant="outline" className="border-gray-200/60">
-              <Plus className="w-4 h-4 mr-2" />
-              New Thought
-            </Button>
-          </Link>
+          <div className="flex items-center justify-center space-x-2">
+            <Link href="/">
+              <Button variant="outline" className="border-gray-200/60">
+                <Plus className="w-4 h-4 mr-2" />
+                New Thought
+              </Button>
+            </Link>
+            <div className="relative mt-2">
+              <SignedIn>
+                <UserButton />
+
+                {/* Tooltip */}
+                <div className="absolute top-full mt-2 right-0 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                  {user?.firstName} {user?.lastName}
+                </div>
+              </SignedIn>
+            </div>
+          </div>
         </div>
       </header>
 

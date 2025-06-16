@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useEffect } from "react";
 import useExploreChatStore from "@/store/explore-chat-store";
+import { useAuth } from "@clerk/nextjs";
 
 export function SessionSidebar({}) {
   const {
@@ -19,7 +20,7 @@ export function SessionSidebar({}) {
     setActiveSessionId,
     setNewSession,
   } = useExploreChatStore();
-
+  const { getToken } = useAuth();
   const formatDate = (date: string) => {
     const dateObj = new Date(date);
     return dateObj.toLocaleDateString("en-US", {
@@ -36,6 +37,9 @@ export function SessionSidebar({}) {
       `http://localhost:8000/chat/sessions/${sessionId}`,
       {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
       }
     );
     const data = await response.json();
@@ -46,12 +50,16 @@ export function SessionSidebar({}) {
 
   useEffect(() => {
     const fetchSessions = async () => {
-      const response = await fetch("http://localhost:8000/chat/sessions");
+      const response = await fetch("http://localhost:8000/chat/sessions", {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
       const data = await response.json();
       setSessions(data);
     };
     fetchSessions();
-  }, []);
+  }, [getToken]);
 
   return (
     <div className="flex-1/4 border-r border-gray-200/60 h-full flex flex-col bg-white">

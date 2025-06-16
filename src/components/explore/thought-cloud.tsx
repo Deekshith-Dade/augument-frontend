@@ -356,6 +356,8 @@ export default function ThoughtCloud({
     );
   }, [searchQuery, thoughtNodes]);
 
+  if (!thoughts) return null;
+
   return (
     <div className="relative h-[85vh] bg-slate-100 font-sans">
       {/* Header */}
