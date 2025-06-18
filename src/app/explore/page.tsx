@@ -83,7 +83,7 @@ export default function ExplorePage() {
           </div>
         ) : (
           <>
-            <Tabs defaultValue="chat" className=" h-full w-full">
+            <Tabs defaultValue="thoughts" className=" h-full w-full">
               {/* Navigation Tabs */}
               <div className="border-b border-gray-200/60 bg-white/50">
                 <div className="max-w-7xl mx-auto">

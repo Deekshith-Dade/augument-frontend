@@ -131,7 +131,7 @@ export function ChatWindow({}) {
   // };
 
   return (
-    <div className="flex flex-col flex-1 mx-auto overflow-auto ">
+    <div className="flex flex-col flex-1 mx-auto overflow-auto w-full">
       <ScrollArea className="flex-1 px-4 min-h-0 min-w-0">
         <div className="space-y-4 pb-4 mx-auto">
           {messages.length > 0 ? (
