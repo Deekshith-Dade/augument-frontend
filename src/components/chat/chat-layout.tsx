@@ -9,10 +9,15 @@ import useExploreChatStore from "@/store/explore-chat-store";
 // import useExploreChatStore from "@/store/explore-chat-store";
 
 export function ChatLayout() {
-  const { isSidebarOpen, setIsSidebarOpen } = useExploreChatStore();
+  const { isSidebarOpen, setIsSidebarOpen, sessions, activeSessionId } =
+    useExploreChatStore();
+
+  const currentChatSession = sessions.find(
+    (session) => session.id === activeSessionId
+  );
 
   return (
-    <div className="flex w-full h-screen min-h-0 min-w-0 overflow-hidden container mx-auto">
+    <div className="flex w-full h-[calc(100vh-130px)] min-h-0 min-w-0 overflow-hidden">
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <div
@@ -35,9 +40,9 @@ export function ChatLayout() {
         <SessionSidebar />
       </div>
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-h-0 min-w-0">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0 h-full overflow-hidden">
         {/* Mobile header with toggle */}
-        <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-200/60 bg-white">
+        <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-200/60 bg-white flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
@@ -50,7 +55,13 @@ export function ChatLayout() {
               <Menu className="w-5 h-5" />
             )}
           </Button>
-          <h1 className="text-lg font-semibold">Chat</h1>
+          <h1 className="text-lg font-semibold text-center">
+            {currentChatSession?.title?.slice(0, 30) +
+              (currentChatSession?.title?.length &&
+              currentChatSession?.title?.length > 30
+                ? "..."
+                : "") || "Chat"}
+          </h1>
           <div className="w-10" /> {/* Spacer for centering */}
         </div>
         <ChatWindow />

@@ -134,7 +134,10 @@ export default function ExplorePage() {
               </TabsContent>
 
               {/* Chat Section */}
-              <TabsContent value="chat" className="h-screen flex-none">
+              <TabsContent
+                value="chat"
+                className="mt-0 h-[calc(100vh-130px)] overflow-hidden"
+              >
                 <ChatLayout />
               </TabsContent>
 

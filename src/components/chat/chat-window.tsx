@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { useRef, useEffect } from "react";
@@ -131,8 +130,9 @@ export function ChatWindow({}) {
   // };
 
   return (
-    <div className="flex flex-col flex-1 mx-auto overflow-auto w-full">
-      <ScrollArea className="flex-1 px-4 min-h-0 min-w-0">
+    <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
+      {/* Messages Area - This should be the only scrollable part */}
+      <div className="flex-1 min-h-0 max-h-[calc(100vh-220px)] overflow-y-auto px-4">
         <div className="space-y-4 pb-4 mx-auto">
           {messages.length > 0 ? (
             messages.map((message) => (
@@ -154,7 +154,7 @@ export function ChatWindow({}) {
               </div>
             ))
           ) : (
-            <div className="flex justify-center items-center my-auto w-full h-full">
+            <div className="flex justify-center items-center h-full w-full">
               <div className="text-center space-y-4 max-w-lg mx-auto">
                 <div className="text-gray-600 text-xl font-semibold">
                   Welcome to Your Thought Assistant
@@ -177,8 +177,9 @@ export function ChatWindow({}) {
           )}
           <div ref={messagesEndRef} />
         </div>
-      </ScrollArea>
+      </div>
 
+      {/* Input Area - Fixed at bottom */}
       <div className="flex-shrink-0 p-4 border-t border-gray-200/60 bg-white">
         <form onSubmit={handleSubmit} className="flex space-x-2">
           <Textarea
