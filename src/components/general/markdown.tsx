@@ -26,12 +26,8 @@ const schema = {
 const CustomLink = (props: ComponentProps<"a">) => {
   const { href, children } = props;
   if (href?.startsWith("thought://")) {
-    const thoughtId = href.replace("thought://", "");
     return (
-      <span
-        onClick={() => console.log("Open modal for thought:", thoughtId)}
-        className="text-pink-600 underline cursor-pointer hover:text-pink-800"
-      >
+      <span className="text-pink-600 underline cursor-pointer hover:text-pink-800">
         {children}
       </span>
     );

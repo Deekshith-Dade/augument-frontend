@@ -39,6 +39,7 @@ const convertToThreeVector = (position: number[]) => {
 };
 
 const convertToThoughtNodes = (thoughts: ThoughtList[]): ThoughtNode[] => {
+  if (!thoughts) return [];
   return thoughts.map((thought) => ({
     id: thought.id,
     title: thought.title,
@@ -108,7 +109,6 @@ function ThoughtNode({
       }}
       onPointerOver={(e) => {
         e.stopPropagation();
-        console.log("pointer over");
       }}
       onPointerOut={(e) => {
         e.stopPropagation();
@@ -356,7 +356,7 @@ export default function ThoughtCloud({
     );
   }, [searchQuery, thoughtNodes]);
 
-  if (!thoughts) return null;
+  if (!thoughts) return <div>No thoughts found</div>;
 
   return (
     <div className="relative h-[85vh] bg-slate-100 font-sans">
@@ -423,8 +423,6 @@ export default function ThoughtCloud({
           className="display:block"
           camera={{ position: CAMERA_POSITION, fov: CAMERA_FOV }}
           onClick={(e) => {
-            console.log(e.target, e.currentTarget);
-            console.log(e.target == e.currentTarget);
             if (e.target === e.currentTarget) {
               setSelectedThought(null);
             }

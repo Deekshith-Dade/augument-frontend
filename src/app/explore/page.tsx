@@ -19,6 +19,8 @@ import { ChatLayout } from "@/components/chat/chat-layout";
 import Discover from "@/components/explore/discover";
 import { SignedIn, useAuth, UserButton, useUser } from "@clerk/nextjs";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function ExplorePage() {
   const [thoughts, setThoughts] = useState<ThoughtList[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,7 @@ export default function ExplorePage() {
   useEffect(() => {
     const fetchThoughts = async () => {
       setLoading(true);
-      const response = await fetch("http://localhost:8000/thoughts/visualize", {
+      const response = await fetch(`${API_BASE_URL}/thoughts/visualize`, {
         headers: {
           Authorization: `Bearer ${await getToken()}`,
         },
@@ -76,16 +78,16 @@ export default function ExplorePage() {
       {/* Main Content */}
       <div className="flex-1">
         {loading ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="h-full m-auto flex items-center justify-center mt-24">
             <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
           </div>
         ) : (
           <>
-            <Tabs defaultValue="thoughts" className="w-full h-full">
+            <Tabs defaultValue="chat" className=" h-full w-full">
               {/* Navigation Tabs */}
               <div className="border-b border-gray-200/60 bg-white/50">
                 <div className="max-w-7xl mx-auto">
-                  <TabsList className="bg-transparent h-14 w-fit justify-start space-x-2 px-4">
+                  <TabsList className="bg-transparent h-14 justify-start space-x-2 px-4 w-full overflow-x-auto scrollbar-hide">
                     <TabsTrigger
                       value="thoughts"
                       className="data-[state=active]:bg-white data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-gray-200/60 px-4 h-10 hover:cursor-pointer"
@@ -121,7 +123,7 @@ export default function ExplorePage() {
               {/* Thoughts Section */}
               <TabsContent
                 value="thoughts"
-                className="mt-0 h-[calc(100vh-130px)]"
+                className="mt-0 h-[calc(100vh-130px)] overflow-y-auto"
               >
                 <ThoughtsList thoughts={thoughts} setThoughts={setThoughts} />
               </TabsContent>
@@ -132,7 +134,7 @@ export default function ExplorePage() {
               </TabsContent>
 
               {/* Chat Section */}
-              <TabsContent value="chat" className="mt-0 h-[calc(100vh-130px)]">
+              <TabsContent value="chat" className="h-screen flex-none">
                 <ChatLayout />
               </TabsContent>
 

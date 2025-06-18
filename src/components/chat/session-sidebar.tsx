@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, MessageCircle, Trash2, MoreVertical } from "lucide-react";
+import { Plus, MessageCircle, Trash2, MoreVertical, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,8 @@ import { useEffect } from "react";
 import useExploreChatStore from "@/store/explore-chat-store";
 import { useAuth } from "@clerk/nextjs";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export function SessionSidebar({}) {
   const {
     sessions,
@@ -19,8 +21,10 @@ export function SessionSidebar({}) {
     activeSessionId,
     setActiveSessionId,
     setNewSession,
+    setIsSidebarOpen,
   } = useExploreChatStore();
   const { getToken } = useAuth();
+
   const formatDate = (date: string) => {
     const dateObj = new Date(date);
     return dateObj.toLocaleDateString("en-US", {
@@ -33,24 +37,27 @@ export function SessionSidebar({}) {
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    const response = await fetch(
-      `http://localhost:8000/chat/sessions/${sessionId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${await getToken()}`,
-        },
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
+    });
     const data = await response.json();
     console.log(data);
     setSessions(sessions.filter((session) => session.id !== sessionId));
     setActiveSessionId(null);
   };
 
+  const handleSessionSelect = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    // Close sidebar on mobile after selecting a session
+    setIsSidebarOpen(false);
+  };
+
   useEffect(() => {
     const fetchSessions = async () => {
-      const response = await fetch("http://localhost:8000/chat/sessions", {
+      const response = await fetch(`${API_BASE_URL}/chat/sessions`, {
         headers: {
           Authorization: `Bearer ${await getToken()}`,
         },
@@ -62,17 +69,27 @@ export function SessionSidebar({}) {
   }, [getToken]);
 
   return (
-    <div className="flex-1/4 border-r border-gray-200/60 h-full flex flex-col bg-white">
-      <div className="p-4 border-b border-gray-200/60">
+    <div className="flex-1/4 border-r border-gray-200/60 h-full max-w-[280px] w-[280px] flex flex-col bg-white shadow-lg lg:shadow-none">
+      {/* Header with close button for mobile */}
+      <div className="p-4 border-b border-gray-200/60 flex items-center justify-between">
         <Button
           onClick={setNewSession}
           variant="outline"
-          className="w-full border-gray-200/60 justify-start"
+          className="flex-1 border-gray-200/60 justify-start"
         >
           <Plus className="w-4 h-4 mr-2" />
           New Chat
         </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsSidebarOpen(false)}
+          className="lg:hidden ml-2 p-2"
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
+
       <ScrollArea className="flex-1">
         <div className="p-2">
           {sessions
@@ -89,16 +106,17 @@ export function SessionSidebar({}) {
                     ? "bg-gray-100 text-gray-900"
                     : "hover:bg-gray-50 text-gray-700"
                 }`}
-                onClick={() => setActiveSessionId(session.id)}
+                onClick={() => handleSessionSelect(session.id)}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center">
+                  <div className="flex items-center flex-1 min-w-0">
                     <MessageCircle className="w-4 h-4 mr-2 text-gray-500 flex-shrink-0" />
-                    <div className="truncate">
-                      <div className="font-medium text-sm">{session.title}</div>
-                      {/* <div className="text-xs text-gray-500 truncate">
-                      {session.title}
-                    </div> */}
+                    <div className="truncate flex-1">
+                      <div className="font-medium text-sm hover:underline">
+                        {session.title.length > 25
+                          ? session.title.slice(0, 25) + "..."
+                          : session.title}
+                      </div>
                     </div>
                   </div>
                   <DropdownMenu>
@@ -106,7 +124,7 @@ export function SessionSidebar({}) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 opacity-100 group-hover:opacity-100"
+                        className="h-6 w-6 p-0 opacity-100 group-hover:opacity-100 ml-2 flex-shrink-0"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <MoreVertical className="h-3 w-3" />

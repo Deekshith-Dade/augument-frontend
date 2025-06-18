@@ -12,6 +12,8 @@ interface ExploreChatStore {
     addSession: (session: ChatSession) => void;
     currentThoughtId: string | null;
     setCurrentThoughtId: (thoughtId: string | null) => void;
+    isSidebarOpen: boolean;
+    setIsSidebarOpen: (isOpen: boolean) => void;
 }
 
 const useExploreChatStore = create<ExploreChatStore>((set) => ({
@@ -28,6 +30,8 @@ const useExploreChatStore = create<ExploreChatStore>((set) => ({
         
     currentThoughtId: null,
     setCurrentThoughtId: (thoughtId: string | null) => set({ currentThoughtId: thoughtId }),
+    isSidebarOpen: false,
+    setIsSidebarOpen: (isOpen: boolean) => set({ isSidebarOpen: isOpen }),
 }))
 
 export default useExploreChatStore;

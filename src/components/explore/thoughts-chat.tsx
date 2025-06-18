@@ -5,9 +5,11 @@ import { Input } from "../ui/input";
 import { MessageCircle, Send } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function ThoughtsChat() {
   const { messages, setMessages, handleSubmit, input, setInput } = useChat({
-    api: "http://localhost:8000/chat",
+    api: `${API_BASE_URL}/chat`,
     maxSteps: 4,
     onError: (error) => {
       if (error.message.includes("400")) {

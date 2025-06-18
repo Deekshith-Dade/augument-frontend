@@ -6,6 +6,8 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 // Define article interface
 interface Article {
   id: number;
@@ -30,7 +32,7 @@ export default function Discover() {
     const fetchArticles = async () => {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:8000/articles/discover?limit=${limit}&offset=${
+        `${API_BASE_URL}/articles/discover?limit=${limit}&offset=${
           page * limit
         }`,
         {
@@ -40,8 +42,10 @@ export default function Discover() {
         }
       );
       const data = await response.json();
-      if (data.articles.length === 0) {
+      if (data && data.articles && data.articles.length === 0) {
+        setLoading(false);
         setDisabled(true);
+        return;
       }
       setArticles((prev) => {
         const newArticles = data.articles || [];

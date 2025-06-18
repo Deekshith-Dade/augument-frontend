@@ -11,7 +11,7 @@ import useExploreChatStore from "@/store/explore-chat-store";
 import { Message } from "@ai-sdk/react";
 import { useAuth } from "@clerk/nextjs";
 
-// const sessionId = "265687ad-9c61-4f83-a269-c8fa6672d495";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 type JSONValue =
   | string
@@ -43,7 +43,7 @@ export function ChatWindow({}) {
 
   const { messages, setMessages, input, handleInputChange, handleSubmit } =
     useChat({
-      api: `http://localhost:8000/chat/`,
+      api: `${API_BASE_URL}/chat/`,
       experimental_prepareRequestBody({ messages }) {
         return {
           messages: messages[messages.length - 1],
@@ -51,7 +51,6 @@ export function ChatWindow({}) {
         };
       },
       onFinish: (message: Message) => {
-        console.log(message);
         const chatMessage = message as ChatMessage;
         const session = chatMessage.annotations?.[0]?.session;
         if (session && !activeSessionId) {
@@ -76,7 +75,7 @@ export function ChatWindow({}) {
       }
       try {
         const response = await fetch(
-          `http://localhost:8000/chat/history/${sessionId}`,
+          `${API_BASE_URL}/chat/history/${sessionId}`,
           {
             headers: {
               Authorization: `Bearer ${await getToken()}`,
@@ -93,7 +92,6 @@ export function ChatWindow({}) {
   }, [activeSessionId, setMessages, getToken]);
 
   // Scroll to bottom when messages change
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -133,9 +131,9 @@ export function ChatWindow({}) {
   // };
 
   return (
-    <div className="flex flex-col flex-3/4">
-      <ScrollArea className="flex-1 p-4 min-h-0">
-        <div className="space-y-4 pb-4">
+    <div className="flex flex-col flex-1 mx-auto overflow-auto ">
+      <ScrollArea className="flex-1 px-4 min-h-0 min-w-0">
+        <div className="space-y-4 pb-4 mx-auto">
           {messages.length > 0 ? (
             messages.map((message) => (
               <div
@@ -156,7 +154,7 @@ export function ChatWindow({}) {
               </div>
             ))
           ) : (
-            <div className="flex justify-center items-center my-auto">
+            <div className="flex justify-center items-center my-auto w-full h-full">
               <div className="text-center space-y-4 max-w-lg mx-auto">
                 <div className="text-gray-600 text-xl font-semibold">
                   Welcome to Your Thought Assistant
@@ -177,12 +175,11 @@ export function ChatWindow({}) {
               </div>
             </div>
           )}
-          {/* Invisible element to scroll to */}
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
-      <div className="flex-shrink-0 p-4 border-t border-gray-200/60">
+      <div className="flex-shrink-0 p-4 border-t border-gray-200/60 bg-white">
         <form onSubmit={handleSubmit} className="flex space-x-2">
           <Textarea
             placeholder="Type your message..."

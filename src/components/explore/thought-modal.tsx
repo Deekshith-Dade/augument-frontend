@@ -17,6 +17,8 @@ import { Mic, Trash2, X, Save, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@clerk/nextjs";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export interface Thought {
   id: string;
   title: string;
@@ -58,14 +60,11 @@ export default function ThoughtModal({
       setEditedThought(null);
       setImageFile(null);
       const fetchThought = async () => {
-        const response = await fetch(
-          `http://localhost:8000/thoughts/${thought_id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${await getToken()}`,
-            },
-          }
-        );
+        const response = await fetch(`${API_BASE_URL}/thoughts/${thought_id}`, {
+          headers: {
+            Authorization: `Bearer ${await getToken()}`,
+          },
+        });
         const data = await response.json();
         if (response.ok) {
           setEditedThought(data);
@@ -91,16 +90,13 @@ export default function ThoughtModal({
       formData.append("image", imageFile);
     }
 
-    const response = await fetch(
-      `http://localhost:8000/thoughts/${thought_id}`,
-      {
-        method: "PUT",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${await getToken()}`,
-        },
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/thoughts/${thought_id}`, {
+      method: "PUT",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
+    });
 
     if (response.ok) {
       setIsModalOpen(false);
@@ -158,15 +154,12 @@ export default function ThoughtModal({
   const handleDeleteThought = async () => {
     if (editedThought) {
       setDeleteLoading(true);
-      const response = await fetch(
-        `http://localhost:8000/thoughts/${thought_id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${await getToken()}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/thoughts/${thought_id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
       if (response.ok) {
         deleteThought(thought_id);
         setIsModalOpen(false);

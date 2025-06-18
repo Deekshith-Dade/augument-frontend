@@ -14,6 +14,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { SignedIn, useAuth, UserButton, useUser } from "@clerk/nextjs";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function HomePage() {
   const [textThought, setTextThought] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -44,7 +46,7 @@ export default function HomePage() {
       formData.append("image", selectedFile);
     }
 
-    const response = await fetch("http://localhost:8000/thoughts/create", {
+    const response = await fetch(`${API_BASE_URL}/thoughts/create`, {
       method: "POST",
       body: formData,
       headers: {
