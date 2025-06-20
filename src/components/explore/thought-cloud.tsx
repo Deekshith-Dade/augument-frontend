@@ -371,7 +371,7 @@ export default function ThoughtCloud({
     );
 
   return (
-    <div className="relative h-[85vh] bg-slate-100 font-sans">
+    <div className="relative h-[80vh] bg-slate-100 font-sans">
       {/* Header */}
       <div className=" p-6 pointer-events-none w-full z-[10]">
         <div className="max-w-md">

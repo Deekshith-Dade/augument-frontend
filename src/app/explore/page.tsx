@@ -50,10 +50,10 @@ export default function ExplorePage() {
       <header className="border-b border-gray-200/60 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-light text-gray-800 tracking-wide">
+            <h1 className="text-sm md:text-2xl font-light text-gray-800 tracking-wide">
               Augment
             </h1>
-            <p className="text-sm text-gray-500 font-light">
+            <p className="text-xs md:text-sm text-gray-500 font-light">
               Your thought space
             </p>
           </div>
@@ -139,7 +139,7 @@ export default function ExplorePage() {
               </TabsContent>
 
               {/* Graph Section */}
-              <TabsContent value="graph" className="mt-0 h-[calc(100vh-150px)]">
+              <TabsContent value="graph" className="mt-0 h-[calc(100vh-20px)]">
                 <ThoughtsGraph thoughts={thoughts} />
               </TabsContent>
 

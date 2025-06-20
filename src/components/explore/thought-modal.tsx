@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -189,18 +188,20 @@ export default function ThoughtModal({
             <DialogHeader className="relative z-10">
               <DialogTitle className="text-2xl font-extralight tracking-wide text-gray-900 flex items-center">
                 <div className="w-1 h-8 bg-gradient-to-b from-gray-800 to-gray-400 rounded-full mr-4"></div>
-                Edit Thought
+                <p className="text-xl md:text-2xl font-extralight tracking-wide text-gray-900">
+                  Edit Thought
+                </p>
               </DialogTitle>
-              <DialogDescription className="text-gray-500 font-light mt-2 leading-relaxed">
+              {/* <DialogDescription className="text-gray-500 font-light mt-2 leading-relaxed">
                 Refine your thoughts with precision. Every detail matters.
-              </DialogDescription>
+              </DialogDescription> */}
             </DialogHeader>
           </div>
 
           {editedThought && (
-            <div className="space-y-8 py-6 px-6 overflow-y-auto max-h-[calc(95vh-200px)]">
+            <div className="space-y-4 py-6 px-6 overflow-y-auto max-h-[calc(95vh-220px)]">
               {/* Title Section */}
-              <div className="group space-y-3">
+              <div className="group space-y-1">
                 <Label
                   htmlFor="title"
                   className="text-gray-700 font-light text-sm tracking-wide uppercase"
@@ -408,13 +409,12 @@ export default function ThoughtModal({
             </div>
           )}
 
-          {/* Footer with enhanced styling */}
+          {/* Footer */}
           <div className="relative -mx-6 -mb-6 px-6 py-4 bg-gradient-to-t from-gray-50 to-white border-t border-gray-100">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse opacity-30"></div>
-            <DialogFooter className="relative z-10 flex justify-between items-center">
+            <DialogFooter className="relative z-10 flex justify-between items-center text-xs md:text-base">
               <Button
                 variant="outline"
-                className="group border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all duration-300"
+                className="group border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all duration-300 text-xs md:text-base px-2 md:px-4"
                 onClick={handleDeleteThought}
                 disabled={deleteLoading}
               >
@@ -425,11 +425,11 @@ export default function ThoughtModal({
                 )}
                 Delete
               </Button>
-              <div className="flex space-x-3">
+              <div className="flex space-x-1 md:space-x-3">
                 <Button
                   variant="outline"
                   onClick={() => setIsModalOpen(false)}
-                  className="border-gray-200 hover:bg-gray-50 transition-all duration-300"
+                  className="border-gray-200 hover:bg-gray-50 transition-all duration-300 text-xs md:text-base px-2 md:px-4"
                 >
                   <X className="w-4 h-4 mr-2" />
                   Cancel
@@ -441,14 +441,14 @@ export default function ThoughtModal({
                     editedThought?.title.length === 0
                   }
                   onClick={handleSaveThought}
-                  className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                  className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 text-xs md:text-base"
                 >
                   {saveLoading ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
                     <Save className="w-4 h-4 mr-2" />
                   )}
-                  Save Changes
+                  Save
                 </Button>
               </div>
             </DialogFooter>
@@ -472,7 +472,7 @@ export function ImageViewer({
 }) {
   return (
     <Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
-      <DialogContent className="p-0 border-none bg-transparent backdrop-blur-3xl shadow-2xl max-w-[95vw] max-h-[95vh] w-full h-full flex items-center justify-center">
+      <DialogContent className="p-0 border-none bg-transparent backdrop-blur-3xl shadow-2xl max-w-[95vw] max-h-[80vh] w-full h-full flex items-center justify-center">
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <div className="relative w-full h-full flex items-center justify-center">
           {/* Close Button */}
