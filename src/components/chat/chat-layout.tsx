@@ -17,7 +17,7 @@ export function ChatLayout() {
   );
 
   return (
-    <div className="flex w-full h-[calc(100vh-130px)] min-h-0 min-w-0 overflow-hidden">
+    <div className="flex w-full h-[calc(100vh-150px)] min-h-0 min-w-0 overflow-hidden container mx-auto">
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <div
@@ -56,11 +56,9 @@ export function ChatLayout() {
             )}
           </Button>
           <h1 className="text-lg font-semibold text-center">
-            {currentChatSession?.title?.slice(0, 30) +
-              (currentChatSession?.title?.length &&
-              currentChatSession?.title?.length > 30
-                ? "..."
-                : "") || "Chat"}
+            {currentChatSession?.title && currentChatSession?.title.length > 30
+              ? currentChatSession?.title.slice(0, 30) + "..."
+              : currentChatSession?.title || "Chat"}
           </h1>
           <div className="w-10" /> {/* Spacer for centering */}
         </div>

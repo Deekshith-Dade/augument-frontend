@@ -2,14 +2,12 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, Mic, Type, Send, Loader2, Grid3X3 } from "lucide-react";
+import { Mic, Send, Loader2, Grid3X3, Plus, ImageIcon, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -37,6 +35,7 @@ export default function HomePage() {
   const { user } = useUser();
   const { getToken } = useAuth();
   const [isPasting, setIsPasting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,32 +74,36 @@ export default function HomePage() {
   };
 
   const handlePaste = async (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    setIsPasting(true);
-
     const items = e.clipboardData?.items;
-    if (!items) {
-      setIsPasting(false);
-      return;
-    }
+    if (!items) return;
 
+    // Check if there are any image items
+    let hasImage = false;
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (item.type.indexOf("image") !== -1) {
+        e.preventDefault(); // Only prevent default for images
+        setIsPasting(true);
+
         const file = item.getAsFile();
         if (file) {
           setSelectedFile(file);
-          setIsPasting(false);
+          hasImage = true;
           break;
         }
       }
     }
 
-    setTimeout(() => setIsPasting(false), 500);
+    // // If we found an image, show the pasting indicator briefly
+    if (hasImage) {
+      setTimeout(() => setIsPasting(false), 500);
+    }
+    // For text pasting, let the default behavior handle it (don't prevent default)
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      console.log("file changed", e.target.files[0]);
       setSelectedFile(e.target.files[0]);
     }
   };
@@ -190,144 +193,170 @@ export default function HomePage() {
 
           {/* Main Form */}
           {formStatus.status === null && (
-            <Card className="border-gray-200/60 shadow-sm">
-              <CardContent className="p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <Tabs defaultValue="text" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 bg-gray-50/50 border border-gray-200/40">
-                      <TabsTrigger
-                        value="text"
-                        className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                      >
-                        <Type className="w-4 h-4 mr-2" />
-                        Text
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="audio"
-                        className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                      >
-                        <Mic className="w-4 h-4 mr-2" />
-                        Audio
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="image"
-                        className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Image
-                      </TabsTrigger>
-                    </TabsList>
+            <Card className="border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm py-2 rounded-2xl overflow-hidden">
+              <CardContent className="p-0">
+                <form onSubmit={handleSubmit} className="relative">
+                  {/* Main Input Area */}
+                  <div className="relative">
+                    <Textarea
+                      placeholder="What's on your mind?"
+                      value={textThought}
+                      onChange={(e) => setTextThought(e.target.value)}
+                      onPaste={handlePaste}
+                      className="min-h-32 max-h-64 border-0 resize-none text-lg placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent  pr-12 pl-12 overflow-y-auto"
+                      style={{
+                        height: "auto",
+                        minHeight: "8rem",
+                        maxHeight: "16rem",
+                        scrollbarWidth: "thin",
+                        scrollbarColor: "#ededed #ffffff",
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = "auto";
+                        target.style.height =
+                          Math.min(target.scrollHeight, 256) + "px";
+                      }}
+                    />
 
-                    <TabsContent value="text" className="mt-6">
-                      <div className="space-y-3">
-                        <Label
-                          htmlFor="thought"
-                          className="text-gray-600 font-light"
-                        >
-                          What&apos;s on your mind?
-                        </Label>
-                        <Textarea
-                          id="thought"
-                          placeholder="Share your thoughts..."
-                          value={textThought}
-                          onChange={(e) => setTextThought(e.target.value)}
-                          className="min-h-32 border-gray-200/60 focus:border-gray-300 resize-none"
+                    {/* Left Corner - Add Image Button */}
+                    <div className="absolute left-4 bottom-4">
+                      <div className="relative">
+                        <Input
+                          ref={fileInputRef}
+                          id="image"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="hidden"
                         />
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="audio" className="mt-6">
-                      <div className="space-y-4">
-                        <Label className="text-gray-600 font-light ">
-                          Record your voice
-                        </Label>
-                        <div className="flex min-h-32 items-center justify-center p-8 border border-gray-200/60 rounded-lg border-dashed">
-                          <Button
-                            type="button"
-                            variant={isRecording ? "destructive" : "outline"}
-                            onClick={toggleRecording}
-                            className="border-gray-200/60"
-                          >
-                            <Mic
-                              className={`w-4 h-4 mr-2 ${
-                                isRecording ? "animate-pulse" : ""
-                              }`}
-                            />
-                            {isRecording ? "Stop Recording" : "Start Recording"}
-                          </Button>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="image" className="mt-6">
-                      <div className="space-y-3">
-                        <Label
-                          htmlFor="image"
-                          className="text-gray-600 font-light"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="w-8 h-8 p-0 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                          onClick={() => fileInputRef.current?.click()}
                         >
-                          Upload an image
-                        </Label>
-                        <div
-                          className="border border-gray-200/60 border-dashed rounded-lg p-8 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-colors"
-                          onPaste={handlePaste}
-                          onDragOver={(e) => e.preventDefault()}
-                          tabIndex={0}
-                        >
-                          <div className="flex flex-col items-center space-y-4">
-                            <Upload className="w-8 h-8 text-gray-400 mx-auto" />
-                            <div className="mx-auto space-y-2">
-                              <Input
-                                id="image"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileChange}
-                                className="hidden"
+                          <Plus className="w-4 h-4" />
+                          <span className="sr-only">Add image</span>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Right Corner - Voice Recording Button */}
+                    <div className="absolute right-4 bottom-4">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className={`w-8 h-8 p-0 rounded-full transition-colors ${
+                          isRecording
+                            ? "bg-red-100 text-red-600 hover:bg-red-200"
+                            : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                        }`}
+                        onClick={toggleRecording}
+                      >
+                        <Mic className="w-4 h-4" />
+                        <span className="sr-only">
+                          {isRecording ? "Stop recording" : "Start recording"}
+                        </span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Media Preview Section */}
+                  {(selectedFile || isRecording || isPasting) && (
+                    <div className="border-t border-gray-100 p-2 bg-gray-50/50">
+                      {/* Image Preview */}
+                      {selectedFile && (
+                        <div className="flex items-start space-x-3">
+                          <div className="relative">
+                            {selectedFile.type.startsWith("image/") ? (
+                              <Image
+                                src={
+                                  URL.createObjectURL(selectedFile) ||
+                                  "/placeholder.svg"
+                                }
+                                alt="Preview"
+                                className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                                width={64}
+                                height={64}
                               />
-                              <Label
-                                htmlFor="image"
-                                className="cursor-pointer text-gray-600 hover:text-gray-800 font-light"
-                              >
-                                Click to upload or drag and drop
-                              </Label>
-                              <p className="text-xs text-gray-400 font-light">
-                                Or paste an image from your clipboard (Ctrl+V /
-                                Cmd+V)
-                              </p>
-                            </div>
-                            {selectedFile && (
-                              <div className="flex items-center space-x-2">
-                                <Image
-                                  src={URL.createObjectURL(selectedFile)}
-                                  alt="Selected Image"
-                                  width={50}
-                                  height={50}
-                                />
+                            ) : (
+                              <div className="w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                                <ImageIcon className="w-6 h-6 text-gray-400" />
                               </div>
                             )}
-                            {isPasting && (
-                              <div className="flex items-center space-x-2 bg-gray-50/50 rounded-lg">
-                                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                              </div>
-                            )}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute -top-2 -right-2 w-5 h-5 p-0 rounded-full bg-gray-800 text-white hover:bg-gray-400"
+                              onClick={() => setSelectedFile(null)}
+                            >
+                              <X className="w-3 h-3" />
+                              <span className="sr-only">Remove image</span>
+                            </Button>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-700 truncate">
+                              {selectedFile.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
                           </div>
                         </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
+                      )}
+
+                      {/* Recording Indicator */}
+                      {isRecording && (
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-16 bg-red-50 rounded-lg border border-red-200 flex items-center justify-center">
+                            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-red-600">
+                              Recording...
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Click the mic button to stop
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pasting Indicator */}
+                      {isPasting && (
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-16 bg-blue-50 rounded-lg border border-blue-200 flex items-center justify-center">
+                            <ImageIcon className="w-6 h-6 text-blue-500" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-blue-600">
+                              Pasting image...
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Processing clipboard content
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Submit Button */}
-                  <div className="pt-4">
+                  <div className="absolute top-4 right-4">
                     <Button
                       type="submit"
-                      className={`w-full bg-gray-800 hover:bg-gray-900 text-white border-0 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                        formStatus.status === "loading"
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
-                      }`}
-                      disabled={formStatus.status === "loading" || !textThought}
+                      size="sm"
+                      disabled={
+                        !textThought.trim() && !selectedFile && !isRecording
+                      }
+                      className="w-8 h-8 p-0 rounded-full bg-gray-800 hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                     >
-                      <Send className="w-4 h-4 mr-2" />
-                      Submit Thought
+                      <Send className="w-3.5 h-3.5" />
+                      <span className="sr-only">Submit thought</span>
                     </Button>
                   </div>
                 </form>

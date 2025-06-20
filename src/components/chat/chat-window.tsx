@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Markdown } from "../general/markdown";
 import useExploreChatStore from "@/store/explore-chat-store";
 import { Message } from "@ai-sdk/react";
@@ -66,6 +66,8 @@ export function ChatWindow({}) {
       },
     });
 
+  const [loadingMessages, setLoadingMessages] = useState(false);
+
   useEffect(() => {
     const fetchSessionHistory = async (sessionId: string | null) => {
       if (!sessionId) {
@@ -73,6 +75,7 @@ export function ChatWindow({}) {
         return;
       }
       try {
+        setLoadingMessages(true);
         const response = await fetch(
           `${API_BASE_URL}/chat/history/${sessionId}`,
           {
@@ -85,6 +88,8 @@ export function ChatWindow({}) {
         setMessages(data);
       } catch (error) {
         console.error("Error fetching session history:", error);
+      } finally {
+        setLoadingMessages(false);
       }
     };
     fetchSessionHistory(activeSessionId);
@@ -131,26 +136,84 @@ export function ChatWindow({}) {
 
   return (
     <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
+      {loadingMessages && (
+        <div className="flex justify-center items-center h-full w-full">
+          <div className="text-center space-y-4 max-w-lg mx-auto">
+            <div className="text-gray-600 text-xl font-semibold">
+              Loading...
+            </div>
+          </div>
+        </div>
+      )}
       {/* Messages Area - This should be the only scrollable part */}
-      <div className="flex-1 min-h-0 max-h-[calc(100vh-220px)] overflow-y-auto px-4">
+      <div
+        className="flex-1 min-h-0 max-h-[calc(100vh-220px)] overflow-y-auto px-4"
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "#ededed #ffffff",
+          scrollBehavior: "smooth",
+          scrollMargin: "10px",
+          scrollMarginTop: "10px",
+          scrollMarginBlock: "10px",
+        }}
+      >
         <div className="space-y-4 pb-4 mx-auto">
           {messages.length > 0 ? (
-            messages.map((message) => (
+            messages.map((message, index) => (
               <div
                 key={message.id}
                 className={`flex ${
                   message.role === "user" ? "justify-end" : "justify-start"
-                }`}
+                } mb-4 group animate-in slide-in-from-bottom-2 duration-300`}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div
-                  className={`max-w-[80%] p-3 rounded-lg text-sm font-light ${
-                    message.role === "user"
-                      ? "bg-gray-800 text-white"
-                      : "bg-gray-100 text-gray-700 border border-gray-200/60"
-                  }`}
-                >
-                  <Markdown content={message.content} />
-                </div>
+                {message.content.length > 0 ? (
+                  <div className="max-w-[85%]">
+                    <div
+                      className={`relative p-4 rounded-2xl text-sm font-light transition-all duration-200 group-hover:shadow-md ${
+                        message.role === "user"
+                          ? "bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-br-md shadow-sm"
+                          : "bg-white text-gray-700 border border-gray-100 shadow-sm rounded-bl-md"
+                      }`}
+                    >
+                      {/* Subtle glow effect for user messages */}
+                      {message.role === "user" && (
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl rounded-br-md blur-sm -z-10 opacity-20"></div>
+                      )}
+
+                      <Markdown content={message.content} />
+                    </div>
+                  </div>
+                ) : (
+                  // Enhanced thinking component
+                  <div className="max-w-[85%]">
+                    <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md p-4 shadow-lg relative overflow-hidden">
+                      {/* Subtle animated background */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-50 to-transparent opacity-50 animate-pulse"></div>
+
+                      <div className="flex items-center gap-3 relative z-10">
+                        <div className="flex gap-1.5">
+                          <div
+                            className="w-1.5 h-1.5 bg-gray-600 rounded-full animate-bounce"
+                            style={{ animationDelay: "0ms" }}
+                          ></div>
+                          <div
+                            className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce"
+                            style={{ animationDelay: "200ms" }}
+                          ></div>
+                          <div
+                            className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "400ms" }}
+                          ></div>
+                        </div>
+
+                        <div className="h-px flex-1 bg-gradient-to-r from-gray-300 to-transparent"></div>
+
+                        {/* <span className="text-gray-400 text-xs tracking-wide uppercase font-medium animate-pulse"></span> */}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           ) : (

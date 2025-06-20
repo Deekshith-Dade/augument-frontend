@@ -129,7 +129,7 @@ export default function ExplorePage() {
               </TabsContent>
 
               {/* Graph Section */}
-              <TabsContent value="graph" className="mt-0 h-[calc(100vh-130px)]">
+              <TabsContent value="graph" className="mt-0 h-[calc(100vh-150px)]">
                 <ThoughtsGraph thoughts={thoughts} />
               </TabsContent>
 
