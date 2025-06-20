@@ -18,16 +18,17 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+    <div className="min-h-screen ">
       {/* Navigation */}
       <nav className="border-b border-gray-200/60 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
+              <Image src="/favicon.png" alt="Augment" width={32} height={32} />
             </div>
             <span className="text-xl font-light text-gray-800 tracking-wide">
               Augment
@@ -35,16 +36,8 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center space-x-4">
             <Link href="/sign-in">
-              <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-gray-800"
-              >
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/sign-up">
               <Button className="bg-gray-800 hover:bg-gray-900 text-white">
-                Get Started
+                Sign In
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
@@ -76,22 +69,13 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link href="/">
+            <Link href="/sign-in">
               <Button
                 size="lg"
                 className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3"
               >
                 Start Capturing Ideas
                 <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-gray-200/60 px-8 py-3"
-              >
-                View Demo
               </Button>
             </Link>
           </div>
@@ -398,7 +382,12 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
-                <Brain className="w-4 h-4 text-white" />
+                <Image
+                  src="/favicon.png"
+                  alt="Augment"
+                  width={24}
+                  height={24}
+                />
               </div>
               <span className="text-lg font-light text-gray-800">Augment</span>
             </div>
@@ -414,11 +403,11 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-gray-200/60 text-center">
+          {/* <div className="mt-8 pt-8 border-t border-gray-200/60 text-center">
             <p className="text-sm text-gray-400 font-light">
               © 2024 Augment. Beautifully crafted for beautiful minds.
             </p>
-          </div>
+          </div> */}
         </div>
       </footer>
     </div>

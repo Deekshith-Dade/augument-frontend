@@ -52,7 +52,7 @@ export default function ThoughtModal({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const [isPasting, setIsPasting] = useState(false);
   const { getToken } = useAuth();
   useEffect(() => {
@@ -173,191 +173,327 @@ export default function ThoughtModal({
   };
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-light flex items-center">
-            {/* {editedThought?.type === "text" && <Type className="w-4 h-4 mr-2" />}
-              {editedThought?.type === "image" && <ImageIcon className="w-4 h-4 mr-2" />}
-              {editedThought?.type === "audio" && <Mic className="w-4 h-4 mr-2" />} */}
-            Edit Thought
-          </DialogTitle>
-          <DialogDescription className="text-sm text-gray-500">
-            Make changes to your thought here. Click save when you&apos;re done.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <ImageViewer
+        imageUrl={editedThought?.image_url || ""}
+        title={editedThought?.title || ""}
+        isImageViewerOpen={isImageViewerOpen}
+        setIsImageViewerOpen={setIsImageViewerOpen}
+      />
 
-        {editedThought && (
-          <div className="space-y-6 py-4">
-            {/* Title */}
-            <div className="space-y-2">
-              <Label htmlFor="title" className="text-gray-600 font-light">
-                Title
-              </Label>
-              <Input
-                id="title"
-                value={editedThought.title}
-                onChange={(e) =>
-                  setEditedThought({ ...editedThought, title: e.target.value })
-                }
-                className="border-gray-200/60 focus:border-gray-300"
-              />
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-hidden bg-white/95 backdrop-blur-xl border-0 shadow-2xl">
+          {/* Header with gradient background */}
+          <div className="relative -mx-6 -mt-6 px-6 pt-6 pb-4 bg-gradient-to-br from-gray-50 to-white border-b border-gray-100">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse opacity-30"></div>
+            <DialogHeader className="relative z-10">
+              <DialogTitle className="text-2xl font-extralight tracking-wide text-gray-900 flex items-center">
+                <div className="w-1 h-8 bg-gradient-to-b from-gray-800 to-gray-400 rounded-full mr-4"></div>
+                Edit Thought
+              </DialogTitle>
+              <DialogDescription className="text-gray-500 font-light mt-2 leading-relaxed">
+                Refine your thoughts with precision. Every detail matters.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          {editedThought && (
+            <div className="space-y-8 py-6 px-6 overflow-y-auto max-h-[calc(95vh-200px)]">
+              {/* Title Section */}
+              <div className="group space-y-3">
+                <Label
+                  htmlFor="title"
+                  className="text-gray-700 font-light text-sm tracking-wide uppercase"
+                >
+                  Title
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="title"
+                    value={editedThought.title}
+                    onChange={(e) =>
+                      setEditedThought({
+                        ...editedThought,
+                        title: e.target.value,
+                      })
+                    }
+                    className="border-0 border-b-2 border-gray-200 rounded-none bg-transparent px-0 py-3 text-lg font-light focus:border-gray-800 focus:ring-0 transition-all duration-300 placeholder:text-gray-300"
+                    placeholder="Enter your thought title..."
+                  />
+                  <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-gray-800 to-gray-400 transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left"></div>
+                </div>
+              </div>
+
+              {/* Content Section */}
+              <div className="group space-y-3">
+                <Label
+                  htmlFor="content"
+                  className="text-gray-700 font-light text-sm tracking-wide uppercase"
+                >
+                  Content
+                </Label>
+                <div className="relative">
+                  <Textarea
+                    id="content"
+                    value={editedThought.text_content}
+                    onChange={(e) =>
+                      setEditedThought({
+                        ...editedThought,
+                        text_content: e.target.value,
+                      })
+                    }
+                    className="min-h-40 border border-gray-200 rounded-xl bg-gray-50/30 px-4 py-4 text-gray-800 font-light leading-relaxed resize-none focus:border-gray-400 focus:bg-white focus:ring-0 transition-all duration-300 placeholder:text-gray-400"
+                    placeholder="Share your thoughts here..."
+                  />
+                  <div className="absolute top-3 right-3 text-xs text-gray-400 font-light">
+                    {editedThought.text_content.length} characters
+                  </div>
+                </div>
+              </div>
+
+              {/* Media Sections Container */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Image Section */}
+                <div className="space-y-4">
+                  <Label className="text-gray-700 font-light text-sm tracking-wide uppercase flex items-center">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
+                    Image
+                  </Label>
+                  <div
+                    className="group border-2 border-dashed border-gray-200 rounded-xl p-6 hover:border-gray-300 focus:outline-none focus:border-gray-400 transition-all duration-300 cursor-pointer"
+                    onPaste={handlePaste}
+                    onDragOver={(e) => e.preventDefault()}
+                    tabIndex={0}
+                  >
+                    {editedThought.image_url ? (
+                      <div className="space-y-4">
+                        <div
+                          className="relative overflow-hidden rounded-lg bg-gray-50 cursor-pointer group"
+                          onClick={() => setIsImageViewerOpen(true)}
+                        >
+                          <Image
+                            src={editedThought.image_url || "/placeholder.svg"}
+                            alt={editedThought.title}
+                            className="w-full max-h-48 object-cover transition-all duration-300 group-hover:scale-105"
+                            width={400}
+                            height={300}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                          {/* Click to view indicator */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                              <svg
+                                className="w-6 h-6 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+
+                          {/* Subtle border animation */}
+                          <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/30 rounded-lg transition-all duration-300"></div>
+                        </div>
+                        <Input
+                          id="image"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="text-xs border-gray-200 bg-gray-50 file:bg-gray-800 file:text-white file:border-0 file:rounded-md file:px-3 file:py-1 file:text-xs"
+                        />
+                      </div>
+                    ) : (
+                      <div className="text-center space-y-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                          <ImageIcon className="w-6 h-6 text-gray-600" />
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-500 font-light">
+                            Drop an image or click to browse
+                          </p>
+                          <Input
+                            id="image"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="text-xs border-gray-200 bg-gray-50 file:bg-gray-800 file:text-white file:border-0 file:rounded-md file:px-3 file:py-1 file:text-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {isPasting && (
+                      <div className="absolute inset-0 bg-white/90 flex items-center justify-center rounded-xl">
+                        <div className="flex items-center space-x-3 text-gray-600">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span className="text-sm font-light">
+                            Processing image...
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Audio Section */}
+                <div className="space-y-4">
+                  <Label className="text-gray-700 font-light text-sm tracking-wide uppercase flex items-center">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
+                    Audio
+                  </Label>
+                  <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-all duration-300">
+                    {editedThought.audio_url ? (
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <audio controls className="w-full">
+                            <source
+                              src={editedThought.audio_url}
+                              type="audio/mpeg"
+                            />
+                            Your browser does not support the audio element.
+                          </audio>
+                        </div>
+                        <Button
+                          type="button"
+                          variant={isRecording ? "destructive" : "outline"}
+                          onClick={toggleRecording}
+                          className="w-full border-gray-200 hover:bg-gray-50 transition-all duration-300"
+                        >
+                          <Mic className="w-4 h-4 mr-2" />
+                          {isRecording ? "Stop Recording" : "Record New"}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center space-y-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto hover:scale-110 transition-transform duration-300">
+                          <Mic className="w-6 h-6 text-gray-600" />
+                        </div>
+                        <Button
+                          type="button"
+                          variant={isRecording ? "destructive" : "outline"}
+                          onClick={toggleRecording}
+                          className="w-full border-gray-200 hover:bg-gray-50 transition-all duration-300"
+                        >
+                          <Mic className="w-4 h-4 mr-2" />
+                          {isRecording ? "Stop Recording" : "Start Recording"}
+                        </Button>
+                      </div>
+                    )}
+                    {isRecording && (
+                      <div className="text-center mt-4 p-3 bg-red-50 rounded-lg border border-red-100">
+                        <div className="flex items-center justify-center space-x-2 text-red-600">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="text-sm font-light">
+                            Recording in progress...
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
+          )}
 
-            {/* Content */}
-            <div className="space-y-2">
-              <Label htmlFor="content" className="text-gray-600 font-light">
-                Content
-              </Label>
-              <Textarea
-                id="content"
-                value={editedThought.text_content}
-                onChange={(e) =>
-                  setEditedThought({
-                    ...editedThought,
-                    text_content: e.target.value,
-                  })
-                }
-                className="min-h-32 border-gray-200/60 focus:border-gray-300 resize-none"
-              />
-            </div>
-
-            {/* Media Section */}
-
-            <div className="space-y-3">
-              <Label className="text-gray-600 font-light">Image</Label>
-              <div
-                className="border border-gray-200/60 border-dashed rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-colors"
-                onPaste={handlePaste}
-                onDragOver={(e) => e.preventDefault()}
-                tabIndex={0}
+          {/* Footer with enhanced styling */}
+          <div className="relative -mx-6 -mb-6 px-6 py-4 bg-gradient-to-t from-gray-50 to-white border-t border-gray-100">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse opacity-30"></div>
+            <DialogFooter className="relative z-10 flex justify-between items-center">
+              <Button
+                variant="outline"
+                className="group border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all duration-300"
+                onClick={handleDeleteThought}
+                disabled={deleteLoading}
               >
-                {editedThought.image_url ? (
-                  <div className="space-y-3">
-                    <Image
-                      src={editedThought.image_url || "/placeholder.svg"}
-                      alt={editedThought.title}
-                      className="rounded-md w-full max-h-64 object-contain mx-auto"
-                      width={500}
-                      height={500}
-                    />
-                    <div className="flex justify-center">
-                      <Input
-                        id="image"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="max-w-xs"
-                      />
-                    </div>
-                  </div>
+                {deleteLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
-                  <div className="text-center space-y-2">
-                    <ImageIcon className="w-8 h-8 text-gray-400 mx-auto" />
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="max-w-xs mx-auto"
-                    />
-                  </div>
+                  <Trash2 className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
                 )}
-                {isPasting && (
-                  <div className="flex items-center space-x-2 bg-gray-50/50 rounded-lg">
-                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                  </div>
-                )}
+                Delete
+              </Button>
+              <div className="flex space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                  className="border-gray-200 hover:bg-gray-50 transition-all duration-300"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  disabled={
+                    saveLoading ||
+                    editedThought?.text_content.length === 0 ||
+                    editedThought?.title.length === 0
+                  }
+                  onClick={handleSaveThought}
+                  className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                >
+                  {saveLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  Save Changes
+                </Button>
+              </div>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+export function ImageViewer({
+  imageUrl,
+  title,
+  isImageViewerOpen,
+  setIsImageViewerOpen,
+}: {
+  imageUrl: string;
+  title: string;
+  isImageViewerOpen: boolean;
+  setIsImageViewerOpen: (boolean: boolean) => void;
+}) {
+  return (
+    <Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
+      <DialogContent className="p-0 border-none bg-transparent backdrop-blur-3xl shadow-2xl max-w-[95vw] max-h-[95vh] w-full h-full flex items-center justify-center">
+        <DialogTitle className="sr-only">{title}</DialogTitle>
+        <div className="relative w-full h-full flex items-center justify-center">
+          {/* Close Button */}
+
+          {/* Image */}
+          {imageUrl && (
+            <div className="max-w-full max-h-full px-4 py-6 flex items-center justify-center">
+              <Image
+                src={imageUrl}
+                alt={title}
+                width={1200}
+                height={800}
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-xl"
+              />
+              {/* Caption */}
+              <div className="absolute bottom-4 left-4 bg-black/60 text-white text-sm px-3 py-1 rounded-md">
+                {title}
               </div>
             </div>
-
-            {/* Audio Section */}
-
-            <div className="space-y-3">
-              <Label className="text-gray-600 font-light">Audio</Label>
-              <div className="border border-gray-200/60 border-dashed rounded-lg p-4">
-                {editedThought.audio_url ? (
-                  <div className="space-y-3">
-                    <audio controls className="w-full">
-                      <source src={editedThought.audio_url} type="audio/mpeg" />
-                      Your browser does not support the audio element.
-                    </audio>
-                    <div className="flex justify-center">
-                      <Button
-                        type="button"
-                        variant={isRecording ? "destructive" : "outline"}
-                        onClick={toggleRecording}
-                        className="border-gray-200/60"
-                      >
-                        <Mic className="w-4 h-4 mr-2" />
-                        {isRecording ? "Stop Recording" : "Record New Audio"}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-2">
-                    <Mic className="w-8 h-8 text-gray-400 mx-auto" />
-                    <Button
-                      type="button"
-                      variant={isRecording ? "destructive" : "outline"}
-                      onClick={toggleRecording}
-                      className="border-gray-200/60"
-                    >
-                      <Mic className="w-4 h-4 mr-2" />
-                      {isRecording ? "Stop Recording" : "Start Recording"}
-                    </Button>
-                  </div>
-                )}
-                {isRecording && (
-                  <div className="text-center mt-2">
-                    <div className="inline-flex items-center space-x-2 text-red-500 text-sm">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <span>Recording...</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <DialogFooter className="flex justify-between items-center">
-          <Button
-            variant="outline"
-            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-            onClick={handleDeleteThought}
-            disabled={deleteLoading}
-          >
-            {deleteLoading ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Trash2 className="w-4 h-4 mr-2" />
-            )}
-            Delete
-          </Button>
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-              <X className="w-4 h-4 mr-2 " />
-              Cancel
-            </Button>
-            <Button
-              disabled={
-                saveLoading ||
-                editedThought?.text_content.length === 0 ||
-                editedThought?.title.length === 0
-              }
-              onClick={handleSaveThought}
-              className="bg-gray-800 hover:bg-gray-900"
-            >
-              {saveLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Save
-            </Button>
-          </div>
-        </DialogFooter>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

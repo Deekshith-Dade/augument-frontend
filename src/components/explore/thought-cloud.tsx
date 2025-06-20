@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { ThoughtList } from "@/lib/types";
 import { Button } from "../ui/button";
-import { Minimize2, Search, X } from "lucide-react";
+import { CloudOff, Minimize2, Search, X } from "lucide-react";
 import { Input } from "../ui/input";
 
 const CAMERA_POSITION: [number, number, number] = [0, 0, 5];
@@ -356,7 +356,19 @@ export default function ThoughtCloud({
     );
   }, [searchQuery, thoughtNodes]);
 
-  if (!thoughts) return <div>No thoughts found</div>;
+  if (!thoughts)
+    return (
+      <div className="flex flex-col items-center justify-center h-full space-y-4 p-8 text-center">
+        <div className="rounded-full bg-gray-100 p-4">
+          <CloudOff className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-medium text-gray-700">No thoughts found</h3>
+        <p className="text-sm text-gray-500 max-w-sm">
+          Your thought cloud is empty. Start adding some thoughts to see them
+          visualized here.
+        </p>
+      </div>
+    );
 
   return (
     <div className="relative h-[85vh] bg-slate-100 font-sans">

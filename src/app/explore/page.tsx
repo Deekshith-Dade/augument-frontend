@@ -26,6 +26,9 @@ export default function ExplorePage() {
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
   const { getToken } = useAuth();
+
+  const [userTab, setUserTab] = useState<string>("thoughts");
+
   useEffect(() => {
     const fetchThoughts = async () => {
       setLoading(true);
@@ -83,7 +86,14 @@ export default function ExplorePage() {
           </div>
         ) : (
           <>
-            <Tabs defaultValue="thoughts" className=" h-full w-full">
+            <Tabs
+              defaultValue={userTab}
+              onValueChange={(value) => {
+                setUserTab(value);
+                localStorage.setItem("userTab", value);
+              }}
+              className=" h-full w-full"
+            >
               {/* Navigation Tabs */}
               <div className="border-b border-gray-200/60 bg-white/50">
                 <div className="max-w-7xl mx-auto">

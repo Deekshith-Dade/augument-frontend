@@ -217,7 +217,7 @@ export function ChatWindow({}) {
               </div>
             ))
           ) : (
-            <div className="flex justify-center items-center h-full w-full">
+            <div className="flex justify-center items-center h-full w-full py-16">
               <div className="text-center space-y-4 max-w-lg mx-auto">
                 <div className="text-gray-600 text-xl font-semibold">
                   Welcome to Your Thought Assistant
