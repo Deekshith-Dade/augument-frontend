@@ -105,7 +105,6 @@ export default function ThoughtModal({
         setAudioBlob(audioBlob);
         const url = URL.createObjectURL(audioBlob);
         setAudioURL(url);
-        console.log("audioURL", url);
         if (editedThought) {
           setEditedThought({
             ...editedThought,

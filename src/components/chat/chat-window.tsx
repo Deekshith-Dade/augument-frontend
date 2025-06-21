@@ -9,6 +9,7 @@ import { Markdown } from "../general/markdown";
 import useExploreChatStore from "@/store/explore-chat-store";
 import { Message } from "@ai-sdk/react";
 import { useAuth } from "@clerk/nextjs";
+import ToolDisplay from "./tool-display";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -145,6 +146,7 @@ export function ChatWindow({}) {
           </div>
         </div>
       )}
+
       {/* Messages Area - This should be the only scrollable part */}
       <div
         className="flex-1 min-h-0 max-h-[calc(100vh-220px)] overflow-y-auto px-4"
@@ -160,60 +162,63 @@ export function ChatWindow({}) {
         <div className="space-y-4 pb-4 mx-auto">
           {messages.length > 0 ? (
             messages.map((message, index) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                } mb-4 group animate-in slide-in-from-bottom-2 duration-300`}
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                {message.content.length > 0 ? (
-                  <div className="max-w-[85%]">
-                    <div
-                      className={`relative p-4 rounded-2xl text-sm font-light transition-all duration-200 group-hover:shadow-md ${
-                        message.role === "user"
-                          ? "bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-br-md shadow-sm"
-                          : "bg-white text-gray-700 border border-gray-100 shadow-sm rounded-bl-md"
-                      }`}
-                    >
-                      {/* Subtle glow effect for user messages */}
-                      {message.role === "user" && (
-                        <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl rounded-br-md blur-sm -z-10 opacity-20"></div>
-                      )}
+              <div key={message.id} className="space-y-2">
+                {/* Tool Indicators */}
+                <ToolDisplay message={message} />
 
-                      <Markdown content={message.content} />
-                    </div>
-                  </div>
-                ) : (
-                  // Enhanced thinking component
-                  <div className="max-w-[85%]">
-                    <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md p-4 shadow-lg relative overflow-hidden">
-                      {/* Subtle animated background */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-50 to-transparent opacity-50 animate-pulse"></div>
+                {/* Regular Message Content */}
+                <div
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  } mb-2 group animate-in slide-in-from-bottom-2 duration-300`}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  {message.content.length > 0 ? (
+                    <div className="max-w-[85%]">
+                      <div
+                        className={`relative p-4 rounded-2xl text-sm font-light transition-all duration-200 group-hover:shadow-md ${
+                          message.role === "user"
+                            ? "bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-br-md shadow-sm"
+                            : "bg-white text-gray-700 border border-gray-100 shadow-sm rounded-bl-md"
+                        }`}
+                      >
+                        {/* Subtle glow effect for user messages */}
+                        {message.role === "user" && (
+                          <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl rounded-br-md blur-sm -z-10 opacity-20"></div>
+                        )}
 
-                      <div className="flex items-center gap-3 relative z-10">
-                        <div className="flex gap-1.5">
-                          <div
-                            className="w-1.5 h-1.5 bg-gray-600 rounded-full animate-bounce"
-                            style={{ animationDelay: "0ms" }}
-                          ></div>
-                          <div
-                            className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce"
-                            style={{ animationDelay: "200ms" }}
-                          ></div>
-                          <div
-                            className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "400ms" }}
-                          ></div>
-                        </div>
-
-                        <div className="h-px flex-1 bg-gradient-to-r from-gray-300 to-transparent"></div>
-
-                        {/* <span className="text-gray-400 text-xs tracking-wide uppercase font-medium animate-pulse"></span> */}
+                        <Markdown content={message.content} />
                       </div>
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    // Enhanced thinking component (when message is streaming with no content yet)
+                    <div className="max-w-[85%]">
+                      <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md p-4 shadow-lg relative overflow-hidden">
+                        {/* Subtle animated background */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-50 to-transparent opacity-50 animate-pulse"></div>
+
+                        <div className="flex items-center gap-3 relative z-10">
+                          <div className="flex gap-1.5">
+                            <div
+                              className="w-1.5 h-1.5 bg-gray-600 rounded-full animate-bounce"
+                              style={{ animationDelay: "0ms" }}
+                            ></div>
+                            <div
+                              className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce"
+                              style={{ animationDelay: "200ms" }}
+                            ></div>
+                            <div
+                              className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                              style={{ animationDelay: "400ms" }}
+                            ></div>
+                          </div>
+
+                          <div className="h-px flex-1 bg-gradient-to-r from-gray-300 to-transparent"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ))
           ) : (

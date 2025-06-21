@@ -112,7 +112,6 @@ export default function AddThought() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      console.log("file changed", e.target.files[0]);
       setSelectedFile(e.target.files[0]);
     }
   };
@@ -141,7 +140,6 @@ export default function AddThought() {
         setAudioBlob(audioBlob);
         const url = URL.createObjectURL(audioBlob);
         setAudioURL(url);
-        console.log("audioURL", url);
       };
 
       mediaRecorder.start();
