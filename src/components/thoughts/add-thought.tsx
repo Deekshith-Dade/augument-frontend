@@ -17,6 +17,13 @@ export default function AddThought() {
   const [textThought, setTextThought] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioURL, setAudioURL] = useState<string | null>(null);
+  // const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+
   const [formStatus, setFormStatus] = useState<{
     status: "success" | "error" | "loading" | null;
     message: string;
@@ -42,6 +49,16 @@ export default function AddThought() {
     }
     if (selectedFile) {
       formData.append("image", selectedFile);
+    }
+    if (audioBlob) {
+      if (audioBlob.size > 2 * 1024 * 1024) {
+        setFormStatus({
+          status: "error",
+          message: "Audio file is too large. Please record a shorter audio.",
+        });
+        return;
+      }
+      formData.append("audio", audioBlob, "audio.webm");
     }
 
     const response = await fetch(`${API_BASE_URL}/thoughts/create`, {
@@ -100,10 +117,63 @@ export default function AddThought() {
     }
   };
 
-  const toggleRecording = () => {
-    setIsRecording(!isRecording);
-    // TODO: Implement audio recording logic
+  const toggleRecording = async () => {
+    if (!isRecording) {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      streamRef.current = stream; // Store stream reference
+
+      // Use a local array to collect chunks
+      const chunks: Blob[] = [];
+      // setRecordedChunks([]);
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+          // setRecordedChunks((prev) => [...prev, e.data]);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        // Use local chunks array instead of state
+        const audioBlob = new Blob(chunks, { type: "audio/webm" });
+        setAudioBlob(audioBlob);
+        const url = URL.createObjectURL(audioBlob);
+        setAudioURL(url);
+        console.log("audioURL", url);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } else {
+      const mediaRecorder = mediaRecorderRef.current;
+      const stream = streamRef.current;
+
+      if (!mediaRecorder) return;
+
+      // Stop the media recorder
+      mediaRecorder.stop();
+
+      // Immediately stop all tracks to release microphone
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+
+      if (audioBlob && audioBlob.size > 2 * 1024 * 1024) {
+        setFormStatus({
+          status: "error",
+          message: "Audio file is too large. Please record a shorter audio.",
+        });
+        setAudioBlob(null);
+        setAudioURL(null);
+        // setRecordedChunks([]);
+      }
+
+      setIsRecording(false);
+    }
   };
+
   return (
     <div className="w-full max-w-2xl space-y-8">
       {/* Header */}
@@ -263,7 +333,7 @@ export default function AddThought() {
               </div>
 
               {/* Media Preview Section */}
-              {(selectedFile || isRecording || isPasting) && (
+              {(selectedFile || isRecording || isPasting || audioURL) && (
                 <div className="border-t border-gray-100 p-2 bg-gray-50/50">
                   {/* Image Preview */}
                   {selectedFile && (
@@ -307,6 +377,37 @@ export default function AddThought() {
                     </div>
                   )}
 
+                  {/* Audio Preview */}
+                  {audioURL && (
+                    <div className=" flex items-start space-x-3 w-full">
+                      <div className="relative">
+                        <audio src={audioURL} controls className="w-64 h-8" />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute -top-2 -right-2 w-5 h-5 p-0 rounded-full bg-gray-800 text-white hover:bg-gray-400"
+                          onClick={() => {
+                            setAudioBlob(null);
+                            setAudioURL(null);
+                            // setRecordedChunks([]);
+                            setIsRecording(false);
+                          }}
+                        >
+                          <X className="w-3 h-3" />
+                          <span className="sr-only">Remove audio</span>
+                        </Button>
+                      </div>
+                      <div className="flex-1 px-2 min-w-0">
+                        <p className="text-sm font-medium text-gray-700 truncate">
+                          Audio
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {((audioBlob?.size ?? 0) / 1024).toFixed(2)} KB
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   {/* Recording Indicator */}
                   {isRecording && (
                     <div className="flex items-center space-x-4">
@@ -317,6 +418,10 @@ export default function AddThought() {
                         <p className="text-sm font-medium text-red-600">
                           Recording...
                         </p>
+                        {/* <p className="text-xs text-gray-500">
+                          {((recordedChunks[0]?.size ?? 0) / 1024).toFixed(2)}{" "}
+                          KB
+                        </p> */}
                         <p className="text-xs text-gray-500">
                           Click the mic button to stop
                         </p>

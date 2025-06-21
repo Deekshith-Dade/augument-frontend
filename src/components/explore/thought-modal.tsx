@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   Dialog,
@@ -53,11 +53,19 @@ export default function ThoughtModal({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
   const [isPasting, setIsPasting] = useState(false);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioURL, setAudioURL] = useState<string | null>(null);
+
   const { getToken } = useAuth();
   useEffect(() => {
     if (thought_id) {
       setEditedThought(null);
       setImageFile(null);
+      setAudioBlob(null);
+      setAudioURL(null);
       const fetchThought = async () => {
         const response = await fetch(`${API_BASE_URL}/thoughts/${thought_id}`, {
           headers: {
@@ -73,8 +81,69 @@ export default function ThoughtModal({
     }
   }, [thought_id, getToken]);
 
-  const toggleRecording = () => {
-    setIsRecording(!isRecording);
+  const toggleRecording = async () => {
+    if (!isRecording) {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      streamRef.current = stream; // Store stream reference
+
+      // Use a local array to collect chunks
+      const chunks: Blob[] = [];
+      // setRecordedChunks([]);
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+          // setRecordedChunks((prev) => [...prev, e.data]);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        // Use local chunks array instead of state
+        const audioBlob = new Blob(chunks, { type: "audio/webm" });
+        setAudioBlob(audioBlob);
+        const url = URL.createObjectURL(audioBlob);
+        setAudioURL(url);
+        console.log("audioURL", url);
+        if (editedThought) {
+          setEditedThought({
+            ...editedThought,
+            audio_url: url,
+          });
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } else {
+      const mediaRecorder = mediaRecorderRef.current;
+      const stream = streamRef.current;
+
+      if (!mediaRecorder) return;
+
+      // Stop the media recorder
+      mediaRecorder.stop();
+
+      // Immediately stop all tracks to release microphone
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+
+      if (audioBlob && audioBlob.size > 2 * 1024 * 1024) {
+        alert("Audio file is too large. Please record a shorter audio.");
+        setAudioBlob(null);
+        setAudioURL(null);
+        if (editedThought) {
+          setEditedThought({
+            ...editedThought,
+            audio_url: "",
+          });
+        }
+      }
+
+      setIsRecording(false);
+    }
   };
 
   const handleSaveThought = async () => {
@@ -87,6 +156,16 @@ export default function ThoughtModal({
     formData.append("text_content", editedThought.text_content);
     if (imageFile) {
       formData.append("image", imageFile);
+    }
+    if (audioBlob) {
+      if (audioBlob.size > 2 * 1024 * 1024) {
+        alert("Audio file is too large. Please record a shorter audio.");
+        setAudioBlob(null);
+        setAudioURL(null);
+        setSaveLoading(false);
+        return;
+      }
+      formData.append("audio", audioBlob, "audio.webm");
     }
 
     const response = await fetch(`${API_BASE_URL}/thoughts/${thought_id}`, {
@@ -267,9 +346,25 @@ export default function ThoughtModal({
                     tabIndex={0}
                   >
                     {editedThought.image_url ? (
-                      <div className="space-y-4">
+                      <div className="space-y-4 relative">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute -top-2 -right-2 w-5 h-5 p-0 rounded-full bg-red-800 text-white hover:bg-gray-400 z-10"
+                          onClick={() => {
+                            setImageFile(null);
+                            setEditedThought({
+                              ...editedThought,
+                              image_url: "",
+                            });
+                          }}
+                        >
+                          <X className="w-3 h-3" />
+                          <span className="sr-only">Remove image</span>
+                        </Button>
                         <div
-                          className="relative overflow-hidden rounded-lg bg-gray-50 cursor-pointer group"
+                          className="relative overflow-hidden rounded-lg bg-gray-50 cursor-pointer group w-full h-full"
                           onClick={() => setIsImageViewerOpen(true)}
                         >
                           <Image
@@ -279,6 +374,7 @@ export default function ThoughtModal({
                             width={400}
                             height={300}
                           />
+
                           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                           {/* Click to view indicator */}
@@ -361,7 +457,7 @@ export default function ThoughtModal({
                         <div className="bg-gray-50 rounded-lg p-4">
                           <audio controls className="w-full">
                             <source
-                              src={editedThought.audio_url}
+                              src={audioURL || editedThought.audio_url || ""}
                               type="audio/mpeg"
                             />
                             Your browser does not support the audio element.
