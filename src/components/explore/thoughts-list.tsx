@@ -5,10 +5,10 @@ import ThoughtModal, { Thought } from "./thought-modal";
 import { Search, X } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ThoughtsListProps {
   thoughts: ThoughtList[];
-  setThoughts: (thoughts: ThoughtList[]) => void;
 }
 
 const colors = [
@@ -27,10 +27,8 @@ const sortThoughtsByTime = (thoughts: ThoughtList[]) => {
   });
 };
 
-export default function ThoughtsList({
-  thoughts,
-  setThoughts,
-}: ThoughtsListProps) {
+export default function ThoughtsList({ thoughts }: ThoughtsListProps) {
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentThought, setCurrentThought] = useState<ThoughtList | null>(
     null
@@ -56,11 +54,11 @@ export default function ThoughtsList({
       currThought.excerpt = thought.text_content.slice(0, 100);
       currThought.created_at = thought.created_at;
     }
+    queryClient.invalidateQueries({ queryKey: ["thoughts"] });
   };
 
-  const deleteThought = (thought_id: string) => {
-    const newThoughts = thoughts.filter((t) => t.id !== thought_id);
-    setThoughts(newThoughts);
+  const deleteThought = () => {
+    queryClient.invalidateQueries({ queryKey: ["thoughts"] });
   };
 
   const openThoughtModal = (thought: ThoughtList) => {

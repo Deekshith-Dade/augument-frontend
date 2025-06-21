@@ -9,12 +9,8 @@ import useExploreChatStore from "@/store/explore-chat-store";
 // import useExploreChatStore from "@/store/explore-chat-store";
 
 export function ChatLayout() {
-  const { isSidebarOpen, setIsSidebarOpen, sessions, activeSessionId } =
+  const { isSidebarOpen, setIsSidebarOpen, currentSessionName } =
     useExploreChatStore();
-
-  const currentChatSession = sessions.find(
-    (session) => session.id === activeSessionId
-  );
 
   return (
     <div className="flex w-full h-[calc(100vh-150px)] min-h-0 min-w-0 overflow-hidden container mx-auto">
@@ -56,9 +52,9 @@ export function ChatLayout() {
             )}
           </Button>
           <h1 className="text-lg font-semibold text-center">
-            {currentChatSession?.title && currentChatSession?.title.length > 30
-              ? currentChatSession?.title.slice(0, 30) + "..."
-              : currentChatSession?.title || "Chat"}
+            {currentSessionName && currentSessionName.length > 30
+              ? currentSessionName.slice(0, 30) + "..."
+              : currentSessionName || "Chat"}
           </h1>
           <div className="w-10" /> {/* Spacer for centering */}
         </div>

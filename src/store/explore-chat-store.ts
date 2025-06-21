@@ -1,15 +1,15 @@
 import { create } from "zustand";
-import { ChatSession } from "@/lib/types";
+// import { ChatSession } from "@/lib/types";
 
 
 
 interface ExploreChatStore {
-    sessions: ChatSession[];
-    setSessions: (sessions: ChatSession[]) => void;
     activeSessionId: string | null;
     setActiveSessionId: (sessionId: string | null) => void;
     setNewSession: () => void;
-    addSession: (session: ChatSession) => void;
+    currentSessionName: string | null;
+    setCurrentSessionName: (sessionName: string | null) => void;
+    // addSession: (session: ChatSession) => void;
     currentThoughtId: string | null;
     setCurrentThoughtId: (thoughtId: string | null) => void;
     isSidebarOpen: boolean;
@@ -17,16 +17,16 @@ interface ExploreChatStore {
 }
 
 const useExploreChatStore = create<ExploreChatStore>((set) => ({
-    sessions: [],
-    setSessions: (sessions: ChatSession[]) => set({ sessions }),
     activeSessionId: null,
     setActiveSessionId: (sessionId: string | null) => set({ activeSessionId: sessionId }),
     setNewSession: () => set({activeSessionId: null}),
-    addSession: (session: ChatSession) => set((state) => {
-        const sessionExists = state.sessions.some(s => s.id === session.id);
-        if (sessionExists) return state;
-        return { sessions: [...state.sessions, session] };
-    }),
+    currentSessionName: null,
+    setCurrentSessionName: (sessionName: string | null) => set({ currentSessionName: sessionName }),
+    // addSession: (session: ChatSession) => set((state) => {
+    //     const sessionExists = state.sessions.some(s => s.id === session.id);
+    //     if (sessionExists) return state;
+    //     return { sessions: [...state.sessions, session] };
+    // }),
         
     currentThoughtId: null,
     setCurrentThoughtId: (thoughtId: string | null) => set({ currentThoughtId: thoughtId }),

@@ -10,6 +10,7 @@ import useExploreChatStore from "@/store/explore-chat-store";
 import { Message } from "@ai-sdk/react";
 import { useAuth } from "@clerk/nextjs";
 import ToolDisplay from "./tool-display";
+import { useQueryClient } from "@tanstack/react-query";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -36,11 +37,11 @@ interface ChatMessage extends Message {
 }
 
 export function ChatWindow({}) {
-  const { activeSessionId, setActiveSessionId, addSession } =
+  const { activeSessionId, setActiveSessionId, setCurrentSessionName } =
     useExploreChatStore();
   const { getToken } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const queryClient = useQueryClient();
   const { messages, setMessages, input, handleInputChange, handleSubmit } =
     useChat({
       api: `${API_BASE_URL}/chat/`,
@@ -54,8 +55,10 @@ export function ChatWindow({}) {
         const chatMessage = message as ChatMessage;
         const session = chatMessage.annotations?.[0]?.session;
         if (session && !activeSessionId) {
-          addSession(session);
+          // addSession(session);
           setActiveSessionId(session.id);
+          setCurrentSessionName(session.title);
+          queryClient.invalidateQueries({ queryKey: ["sessions"] });
         }
       },
       fetch: async (url, options) => {
@@ -71,10 +74,7 @@ export function ChatWindow({}) {
 
   useEffect(() => {
     const fetchSessionHistory = async (sessionId: string | null) => {
-      if (!sessionId) {
-        setMessages([]);
-        return;
-      }
+      setMessages([]);
       try {
         setLoadingMessages(true);
         const response = await fetch(
@@ -96,49 +96,14 @@ export function ChatWindow({}) {
     fetchSessionHistory(activeSessionId);
   }, [activeSessionId, setMessages, getToken]);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // const renderMessageWithCitations = (
-  //   message: string,
-  //   citations?: number[]
-  // ) => {
-  //   if (!citations || citations.length === 0) {
-  //     return <span>{message}</span>;
-  //   }
-
-  //   // Simple citation rendering - in a real app you might want to use a more sophisticated approach
-  //   const parts = message.split(/\[(\d+)\]/);
-
-  //   return (
-  //     <>
-  //       {parts.map((part, index) => {
-  //         // Check if this part is a citation number
-  //         const citationMatch = part.match(/^\d+$/);
-  //         if (citationMatch && citations.includes(Number.parseInt(part))) {
-  //           const thoughtId = Number.parseInt(part);
-  //           return (
-  //             <button
-  //               key={index}
-  //               onClick={() => onCitationClick(thoughtId)}
-  //               className="text-blue-600 hover:underline font-medium px-1"
-  //             >
-  //               [{part}]
-  //             </button>
-  //           );
-  //         }
-  //         return <span key={index}>{part}</span>;
-  //       })}
-  //     </>
-  //   );
-  // };
-
   return (
     <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
       {loadingMessages && (
-        <div className="flex justify-center items-center h-full w-full">
+        <div className="flex-1 min-h-0 flex justify-center items-center">
           <div className="text-center space-y-4 max-w-lg mx-auto">
             <div className="text-gray-600 text-xl font-semibold">
               Loading...
@@ -149,14 +114,11 @@ export function ChatWindow({}) {
 
       {/* Messages Area - This should be the only scrollable part */}
       <div
-        className="flex-1 min-h-0 max-h-[calc(100vh-220px)] overflow-y-auto px-4"
+        className="flex-1 min-h-0  overflow-y-auto px-4"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "#ededed #ffffff",
           scrollBehavior: "smooth",
-          scrollMargin: "10px",
-          scrollMarginTop: "10px",
-          scrollMarginBlock: "10px",
         }}
       >
         <div className="space-y-4 pb-4 mx-auto">

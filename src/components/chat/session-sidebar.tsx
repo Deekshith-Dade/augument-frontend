@@ -15,23 +15,43 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
 import useExploreChatStore from "@/store/explore-chat-store";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChatSession } from "@/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export function SessionSidebar({}) {
   const {
-    sessions,
-    setSessions,
+    // sessions,
+    // setSessions,
     activeSessionId,
     setActiveSessionId,
     setNewSession,
     setIsSidebarOpen,
+    setCurrentSessionName,
   } = useExploreChatStore();
   const { getToken } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+
+  const fetchSessions = async () => {
+    const response = await fetch(`${API_BASE_URL}/chat/sessions`, {
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
+    });
+    const data = await response.json();
+    return data;
+  };
+
+  const { data: sessions, isLoading: isSessionsLoading } = useQuery<
+    ChatSession[]
+  >({
+    queryKey: ["sessions"],
+    queryFn: fetchSessions,
+  });
 
   const formatDate = (date: string) => {
     const dateObj = new Date(date);
@@ -53,30 +73,18 @@ export function SessionSidebar({}) {
     });
     const data = await response.json();
     console.log(data);
-    setSessions(sessions.filter((session) => session.id !== sessionId));
+    queryClient.invalidateQueries({ queryKey: ["sessions"] });
     setActiveSessionId(null);
   };
 
   const handleSessionSelect = (sessionId: string) => {
     setActiveSessionId(sessionId);
+    setCurrentSessionName(
+      sessions?.find((session) => session.id === sessionId)?.title || null
+    );
     // Close sidebar on mobile after selecting a session
     setIsSidebarOpen(false);
   };
-
-  useEffect(() => {
-    const fetchSessions = async () => {
-      setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/chat/sessions`, {
-        headers: {
-          Authorization: `Bearer ${await getToken()}`,
-        },
-      });
-      const data = await response.json();
-      setSessions(data);
-      setIsLoading(false);
-    };
-    fetchSessions();
-  }, [getToken]);
 
   return (
     <div className="flex-1/4 border-r border-gray-200/60 h-full max-w-[280px] w-[280px] flex flex-col bg-white shadow-lg lg:shadow-none">
@@ -102,14 +110,14 @@ export function SessionSidebar({}) {
 
       <ScrollArea className="flex-1">
         <div className="p-2">
-          {isLoading && (
+          {isSessionsLoading && (
             <div className="flex justify-center items-center h-full w-full p-4">
               <Loader2 className="w-4 h-4 animate-spin" />
             </div>
           )}
-          {!isLoading &&
+          {!isSessionsLoading &&
             sessions
-              .sort(
+              ?.sort(
                 (a, b) =>
                   new Date(b.updated_at).getTime() -
                   new Date(a.updated_at).getTime()

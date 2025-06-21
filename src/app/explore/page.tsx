@@ -12,37 +12,47 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import ThoughtsList from "@/components/explore/thoughts-list";
-import { ThoughtList } from "@/lib/types";
+// import { ThoughtList } from "@/lib/types";
 import ThoughtsGraph from "@/components/explore/thoughts-graph";
 import { useEffect, useState } from "react";
 import { ChatLayout } from "@/components/chat/chat-layout";
 import Discover from "@/components/explore/discover";
 import { SignedIn, useAuth, UserButton, useUser } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function ExplorePage() {
-  const [thoughts, setThoughts] = useState<ThoughtList[]>([]);
-  const [loading, setLoading] = useState(false);
+  // const [thoughts, setThoughts] = useState<ThoughtList[]>([]);
+  // const [loading, setLoading] = useState(false);
+
   const { user } = useUser();
   const { getToken } = useAuth();
 
+  useEffect(() => {
+    const userTab = localStorage.getItem("userTab");
+    if (userTab) {
+      setUserTab(userTab);
+    } else {
+      localStorage.setItem("userTab", "thoughts");
+    }
+  }, []);
   const [userTab, setUserTab] = useState<string>("thoughts");
 
-  useEffect(() => {
-    const fetchThoughts = async () => {
-      setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/thoughts/visualize`, {
-        headers: {
-          Authorization: `Bearer ${await getToken()}`,
-        },
-      });
-      const data = await response.json();
-      setThoughts(data.thoughts);
-      setLoading(false);
-    };
-    fetchThoughts();
-  }, [getToken]);
+  const fetchThoughts = async () => {
+    const response = await fetch(`${API_BASE_URL}/thoughts/visualize`, {
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
+    });
+    const data = await response.json();
+    return data.thoughts;
+  };
+
+  const { data: thoughts, isLoading } = useQuery({
+    queryKey: ["thoughts"],
+    queryFn: fetchThoughts,
+  });
 
   return (
     <div className="min-h-screen bg-gray-50/30 flex flex-col">
@@ -80,7 +90,7 @@ export default function ExplorePage() {
 
       {/* Main Content */}
       <div className="flex-1">
-        {loading ? (
+        {isLoading ? (
           <div className="h-full m-auto flex items-center justify-center mt-24">
             <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
           </div>
@@ -135,7 +145,7 @@ export default function ExplorePage() {
                 value="thoughts"
                 className="mt-0 h-[calc(100vh-130px)] overflow-y-auto"
               >
-                <ThoughtsList thoughts={thoughts} setThoughts={setThoughts} />
+                <ThoughtsList thoughts={thoughts || []} />
               </TabsContent>
 
               {/* Graph Section */}
@@ -144,10 +154,7 @@ export default function ExplorePage() {
               </TabsContent>
 
               {/* Chat Section */}
-              <TabsContent
-                value="chat"
-                className="mt-0 h-[calc(100vh-130px)] overflow-hidden"
-              >
+              <TabsContent value="chat" className="mt-0 h-full overflow-hidden">
                 <ChatLayout />
               </TabsContent>
 
