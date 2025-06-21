@@ -87,7 +87,13 @@ export function SessionSidebar({}) {
   };
 
   return (
-    <div className="flex-1/4 border-r border-gray-200/60 h-full max-w-[280px] w-[280px] flex flex-col bg-white shadow-lg lg:shadow-none">
+    <div
+      className="flex-1/4 border-r border-gray-200/60 h-full max-w-[280px] w-[280px] flex flex-col bg-white shadow-lg lg:shadow-none overflow-y-auto"
+      style={{
+        scrollbarWidth: "thin",
+        scrollbarColor: "#ededed #ffffff",
+      }}
+    >
       {/* Header with close button for mobile */}
       <div className="p-4 border-b border-gray-200/60 flex items-center justify-between">
         <Button

@@ -141,28 +141,25 @@ export default function ExplorePage() {
               </div>
 
               {/* Thoughts Section */}
-              <TabsContent
-                value="thoughts"
-                className="mt-0 h-[calc(100vh-130px)] overflow-y-auto"
-              >
+              <TabsContent value="thoughts" className="mt-0  overflow-y-auto">
                 <ThoughtsList thoughts={thoughts || []} />
               </TabsContent>
 
               {/* Graph Section */}
-              <TabsContent value="graph" className="mt-0 h-[calc(100vh-20px)]">
+              <TabsContent value="graph" className="mt-0 ">
                 <ThoughtsGraph thoughts={thoughts} />
               </TabsContent>
 
               {/* Chat Section */}
-              <TabsContent value="chat" className="mt-0 h-full overflow-hidden">
+              <TabsContent
+                value="chat"
+                className="mt-0 h-[calc(100vh-130px)] overflow-hidden"
+              >
                 <ChatLayout />
               </TabsContent>
 
               {/* Discover Section */}
-              <TabsContent
-                value="discover"
-                className="mt-0 h-[calc(100vh-130px)]"
-              >
+              <TabsContent value="discover" className="mt-0 ">
                 <Discover />
               </TabsContent>
             </Tabs>
