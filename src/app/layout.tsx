@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import ReactQueryProvider from "@/lib/providers/react-query-provider";
+import { Toaster } from "sonner";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={` ${inter.variable} antialiased`}>
+          <Toaster position="top-center" />
           <ReactQueryProvider>{children}</ReactQueryProvider>
         </body>
       </html>

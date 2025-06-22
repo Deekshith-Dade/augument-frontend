@@ -20,6 +20,7 @@ import useExploreChatStore from "@/store/explore-chat-store";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChatSession } from "@/lib/types";
+import { toast } from "sonner";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -42,6 +43,14 @@ export function SessionSidebar({}) {
         Authorization: `Bearer ${await getToken()}`,
       },
     });
+    if (response.status === 429) {
+      toast("Rate limit exceeded", {
+        description: "Please try again later",
+        duration: 5000,
+        position: "top-center",
+      });
+      return [];
+    }
     const data = await response.json();
     return data;
   };
@@ -71,6 +80,14 @@ export function SessionSidebar({}) {
         Authorization: `Bearer ${await getToken()}`,
       },
     });
+    if (response.status === 429) {
+      toast("Rate limit exceeded", {
+        description: "Please try again later",
+        duration: 5000,
+        position: "top-center",
+      });
+      return;
+    }
     const data = await response.json();
     console.log(data);
     queryClient.invalidateQueries({ queryKey: ["sessions"] });
@@ -163,6 +180,7 @@ export function SessionSidebar({}) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
+                          className="hover:cursor-pointer"
                           onClick={() => handleDeleteSession(session.id)}
                         >
                           <Trash2 className="w-3.5 h-3.5 mr-2" />

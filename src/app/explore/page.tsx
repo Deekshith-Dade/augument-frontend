@@ -19,7 +19,7 @@ import { ChatLayout } from "@/components/chat/chat-layout";
 import Discover from "@/components/explore/discover";
 import { SignedIn, useAuth, UserButton, useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-
+import { toast } from "sonner";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function ExplorePage() {
@@ -45,6 +45,14 @@ export default function ExplorePage() {
         Authorization: `Bearer ${await getToken()}`,
       },
     });
+    if (response.status === 429) {
+      toast("Rate limit exceeded", {
+        description: "Please try again later",
+        duration: 5000,
+        position: "top-center",
+      });
+      return [];
+    }
     const data = await response.json();
     return data.thoughts;
   };

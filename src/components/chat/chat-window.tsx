@@ -11,6 +11,7 @@ import { Message } from "@ai-sdk/react";
 import { useAuth } from "@clerk/nextjs";
 import ToolDisplay from "./tool-display";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -84,6 +85,14 @@ export function ChatWindow({}) {
             },
           }
         );
+        if (response.status === 429) {
+          toast("Rate limit exceeded", {
+            description: "Please try again later",
+            duration: 5000,
+            position: "top-center",
+          });
+          return;
+        }
         const data = await response.json();
         if (data.length > 0) {
           setMessages(data);
