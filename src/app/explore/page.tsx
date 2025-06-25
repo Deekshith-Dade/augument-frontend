@@ -20,6 +20,7 @@ import Discover from "@/components/explore/discover";
 import { SignedIn, useAuth, UserButton, useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import ThoughtFlow from "@/components/explore/flow/thought-flow";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function ExplorePage() {
@@ -144,6 +145,13 @@ export default function ExplorePage() {
                       <BookOpen className="w-4 h-4 mr-2" />
                       Discover
                     </TabsTrigger>
+                    <TabsTrigger
+                      value="flow"
+                      className="data-[state=active]:bg-white data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-gray-200/60 px-4 h-10 hover:cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Flow
+                    </TabsTrigger>
                   </TabsList>
                 </div>
               </div>
@@ -169,6 +177,11 @@ export default function ExplorePage() {
               {/* Discover Section */}
               <TabsContent value="discover" className="mt-0 ">
                 <Discover />
+              </TabsContent>
+
+              {/* Flow Section */}
+              <TabsContent value="flow" className="mt-0 ">
+                <ThoughtFlow />
               </TabsContent>
             </Tabs>
           </>
